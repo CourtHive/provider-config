@@ -1,0 +1,34 @@
+{
+  "name": "@courthive/provider-config",
+  "version": "0.1.0",
+  "description": "Canonical types, KEYS, validators, computeEffectiveConfig, and MUTATION_PERMISSIONS for CourtHive provider configuration.",
+  "license": "MIT",
+  "private": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "check-types": "tsc --noEmit",
+    "test": "vitest --run",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^10.0.0",
+    "typescript": "^6.0.0",
+    "vitest": "^4.1.0"
+  }
+}
