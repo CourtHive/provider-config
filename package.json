@@ -2,8 +2,17 @@
   "name": "@courthive/provider-config",
   "version": "0.1.0",
   "description": "Canonical types, KEYS, validators, computeEffectiveConfig, and MUTATION_PERMISSIONS for CourtHive provider configuration.",
+  "author": "Charles Allen <charles@CourtHive.com> (CourtHive.com)",
   "license": "MIT",
   "private": false,
+  "bugs": {
+    "url": "https://github.com/CourtHive/provider-config/issues",
+    "email": "support@CourtHive.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CourtHive/provider-config.git"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
