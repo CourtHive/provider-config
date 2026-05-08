@@ -60,7 +60,12 @@ const SETTINGS_POLICY_KEYS = new Set([
   'allowedCategories',
 ]);
 
-const SETTINGS_DEFAULTS_KEYS = new Set(['defaultEventType', 'defaultDrawType', 'defaultCreationMethod', 'defaultGender']);
+const SETTINGS_DEFAULTS_KEYS = new Set([
+  'defaultEventType',
+  'defaultDrawType',
+  'defaultCreationMethod',
+  'defaultGender',
+]);
 
 const INTEGRATIONS_ALLOWED_KEYS = new Set(['ssoProvider']);
 

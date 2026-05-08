@@ -8,9 +8,7 @@ describe('validateCaps', () => {
   });
 
   it('rejects non-objects', () => {
-    expect(validateCaps(null)).toEqual([
-      { path: '', code: 'wrongType', message: 'caps must be an object' },
-    ]);
+    expect(validateCaps(null)).toEqual([{ path: '', code: 'wrongType', message: 'caps must be an object' }]);
     expect(validateCaps('hi')).toHaveLength(1);
     expect(validateCaps([])[0].code).toBe('wrongType');
   });
@@ -190,19 +188,13 @@ describe('validateSettings', () => {
 
     it('accepts settings false when caps true (provider may disable)', () => {
       expect(
-        validateSettings(
-          { permissions: { canCreateEvents: false } },
-          { permissions: { canCreateEvents: true } },
-        ),
+        validateSettings({ permissions: { canCreateEvents: false } }, { permissions: { canCreateEvents: true } }),
       ).toEqual([]);
     });
 
     it('accepts settings false when caps false (consistent)', () => {
       expect(
-        validateSettings(
-          { permissions: { canCreateEvents: false } },
-          { permissions: { canCreateEvents: false } },
-        ),
+        validateSettings({ permissions: { canCreateEvents: false } }, { permissions: { canCreateEvents: false } }),
       ).toEqual([]);
     });
 
@@ -222,27 +214,19 @@ describe('validateSettings', () => {
 
     it('accepts settings true when caps true', () => {
       expect(
-        validateSettings(
-          { permissions: { canCreateOfficials: true } },
-          { permissions: { canCreateOfficials: true } },
-        ),
+        validateSettings({ permissions: { canCreateOfficials: true } }, { permissions: { canCreateOfficials: true } }),
       ).toEqual([]);
     });
   });
 
   describe('caps-respect — array permissions', () => {
     it('accepts any settings when caps universe undefined', () => {
-      expect(
-        validateSettings({ permissions: { allowedDrawTypes: ['SE', 'COMPASS'] } }, {}),
-      ).toEqual([]);
+      expect(validateSettings({ permissions: { allowedDrawTypes: ['SE', 'COMPASS'] } }, {})).toEqual([]);
     });
 
     it('accepts any settings when caps universe is empty (= unrestricted)', () => {
       expect(
-        validateSettings(
-          { permissions: { allowedDrawTypes: ['COMPASS'] } },
-          { permissions: { allowedDrawTypes: [] } },
-        ),
+        validateSettings({ permissions: { allowedDrawTypes: ['COMPASS'] } }, { permissions: { allowedDrawTypes: [] } }),
       ).toEqual([]);
     });
 

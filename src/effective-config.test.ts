@@ -214,10 +214,7 @@ describe('computeEffectiveConfig', () => {
     });
 
     it('returns settings when caps universe is unset', () => {
-      const result = computeEffectiveConfig(
-        {},
-        { policies: { allowedMatchUpFormats: ['SET3-S:6/TB7'] } },
-      );
+      const result = computeEffectiveConfig({}, { policies: { allowedMatchUpFormats: ['SET3-S:6/TB7'] } });
       expect(result.policies?.allowedMatchUpFormats).toEqual(['SET3-S:6/TB7']);
     });
   });
@@ -257,10 +254,7 @@ describe('computeEffectiveConfig', () => {
 
   describe('policies.scheduling/scoring/seedingPolicy (settings-only)', () => {
     it('takes schedulingPolicy from settings, ignoring caps even if caller leaks one in', () => {
-      const result = computeEffectiveConfig(
-        {} as any,
-        { policies: { schedulingPolicy: { foo: 'settings' } } },
-      );
+      const result = computeEffectiveConfig({} as any, { policies: { schedulingPolicy: { foo: 'settings' } } });
       expect(result.policies?.schedulingPolicy).toEqual({ foo: 'settings' });
     });
 
@@ -366,10 +360,7 @@ describe('computeEffectiveConfig', () => {
     it('ignores stray cityState on caps (privacy is provider-owned, not provisioner-gated)', () => {
       // A stale write to caps.participantPrivacy must not influence the
       // effective shape — settings tier is the only source of truth.
-      const out = computeEffectiveConfig(
-        { participantPrivacy: { cityState: true } } as any,
-        {},
-      );
+      const out = computeEffectiveConfig({ participantPrivacy: { cityState: true } } as any, {});
       expect(out.participantPrivacy?.cityState).toBe(false);
     });
   });
