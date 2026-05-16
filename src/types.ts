@@ -117,6 +117,14 @@ export interface ProviderDefaults {
   defaultCreationMethod?: string;
   /** Default gender */
   defaultGender?: string;
+  /**
+   * Default UI language for users who haven't explicitly chosen one.
+   * BCP47 tag (e.g., 'en', 'cs', 'fr', 'pt-BR'). Applied at TMX boot
+   * when settings.languageExplicit is not true. Falls through to
+   * navigator.language → 'en' if absent or unavailable.
+   * See Mentat/planning/I18N_DELIVERY.md.
+   */
+  defaultLanguage?: string;
 }
 
 export interface ProviderIntegrations {
