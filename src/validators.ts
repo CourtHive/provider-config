@@ -65,6 +65,8 @@ const SETTINGS_DEFAULTS_KEYS = new Set([
   'defaultDrawType',
   'defaultCreationMethod',
   'defaultGender',
+  'defaultLanguage',
+  'defaultPdfFont',
 ]);
 
 const INTEGRATIONS_ALLOWED_KEYS = new Set(['ssoProvider']);

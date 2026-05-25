@@ -125,6 +125,14 @@ export interface ProviderDefaults {
    * See Mentat/planning/I18N_DELIVERY.md.
    */
   defaultLanguage?: string;
+  /**
+   * Default PDF font id for generated tournament documents, chosen from the
+   * CFS font catalog (`GET /fonts`) — e.g. 'dejavu-sans' or 'liberation-sans'
+   * for Central-European (Latin-2) coverage. End users may override it in TMX
+   * settings; both fall back to the built-in helvetica when unset/unknown.
+   * See Mentat/planning/PDF_CE_FONT_SUPPORT.md.
+   */
+  defaultPdfFont?: string;
 }
 
 export interface ProviderIntegrations {
