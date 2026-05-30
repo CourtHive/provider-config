@@ -53,6 +53,64 @@ describe('validateCaps', () => {
     expect(issues.find((i) => i.path === 'branding.navbarLogoHeight')?.code).toBe('wrongType');
   });
 
+  it('accepts well-formed themeTokens with --tmx-* and --chc-* prefixes', () => {
+    expect(
+      validateCaps({
+        branding: {
+          themeTokens: {
+            '--tmx-accent-blue': '#1a5276',
+            '--tmx-bg-primary': '#f4f6f8',
+            '--chc-text-primary': '#0a0a0a',
+          },
+        },
+      }),
+    ).toEqual([]);
+  });
+
+  it('rejects themeTokens keys outside the allowed prefixes', () => {
+    const issues = validateCaps({
+      branding: { themeTokens: { '--malicious-var': 'red', background: 'blue' } },
+    });
+    expect(issues).toHaveLength(2);
+    expect(issues.every((i) => i.code === 'unknownField')).toBe(true);
+    expect(issues.map((i) => i.path).sort()).toEqual([
+      'branding.themeTokens.--malicious-var',
+      'branding.themeTokens.background',
+    ]);
+  });
+
+  it('rejects non-string themeTokens values', () => {
+    const issues = validateCaps({
+      branding: { themeTokens: { '--tmx-accent-blue': 12345 } },
+    });
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toEqual({
+      path: 'branding.themeTokens.--tmx-accent-blue',
+      code: 'wrongType',
+      message: 'themeTokens value for "--tmx-accent-blue" must be a string',
+    });
+  });
+
+  it('rejects non-object themeTokens', () => {
+    const issues = validateCaps({ branding: { themeTokens: 'red' } });
+    expect(issues).toHaveLength(1);
+    expect(issues[0].code).toBe('wrongType');
+    expect(issues[0].path).toBe('branding.themeTokens');
+  });
+
+  it('accepts well-formed stylesheetUrl', () => {
+    expect(validateCaps({ branding: { stylesheetUrl: 'https://provider.example.com/theme.css' } })).toEqual([]);
+  });
+
+  it('rejects non-string stylesheetUrl', () => {
+    const issues = validateCaps({ branding: { stylesheetUrl: 42 } });
+    expect(issues[0]).toEqual({
+      path: 'branding.stylesheetUrl',
+      code: 'wrongType',
+      message: 'stylesheetUrl must be a string',
+    });
+  });
+
   it('accepts well-formed permissions (booleans + arrays)', () => {
     expect(
       validateCaps({

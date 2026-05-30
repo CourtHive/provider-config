@@ -46,7 +46,17 @@ const BRANDING_KEYS = new Set([
   'splashLogoUrl',
   'appName',
   'accentColor',
+  'themeTokens',
+  'stylesheetUrl',
 ]);
+
+/**
+ * Allowed CSS custom-property prefixes for `branding.themeTokens`.
+ * Rejecting outside-prefix tokens prevents accidental leakage into
+ * unrelated CSS variable namespaces (third-party libraries, the
+ * browser's own `--*` vars).
+ */
+const THEME_TOKEN_PREFIXES = ['--tmx-', '--chc-'];
 
 const CAPS_PERMISSION_KEY_SET = new Set<string>([...BOOLEAN_PERMISSION_KEYS, ...ARRAY_PERMISSION_KEYS]);
 const SETTINGS_PERMISSION_KEY_SET = CAPS_PERMISSION_KEY_SET;
@@ -163,8 +173,38 @@ function validateBranding(value: unknown, path: string, issues: ValidationIssue[
       if (typeof v !== 'number') {
         issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${key} must be a number` });
       }
+    } else if (key === 'themeTokens') {
+      validateThemeTokens(v, `${path}.themeTokens`, issues);
     } else if (typeof v !== 'string') {
       issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${key} must be a string` });
+    }
+  }
+}
+
+function validateThemeTokens(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!isPlainObject(value)) {
+    issues.push({
+      path,
+      code: 'wrongType',
+      message: `themeTokens must be an object of { '--tmx-*' | '--chc-*': string }`,
+    });
+    return;
+  }
+  for (const tokenName of Object.keys(value)) {
+    if (!THEME_TOKEN_PREFIXES.some((prefix) => tokenName.startsWith(prefix))) {
+      issues.push({
+        path: `${path}.${tokenName}`,
+        code: 'unknownField',
+        message: `themeTokens key "${tokenName}" is outside the allowed prefixes (${THEME_TOKEN_PREFIXES.join(', ')})`,
+      });
+      continue;
+    }
+    if (typeof value[tokenName] !== 'string') {
+      issues.push({
+        path: `${path}.${tokenName}`,
+        code: 'wrongType',
+        message: `themeTokens value for "${tokenName}" must be a string`,
+      });
     }
   }
 }

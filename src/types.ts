@@ -28,6 +28,26 @@ export interface ProviderBranding {
   appName?: string;
   /** Optional accent color override (CSS color value) */
   accentColor?: string;
+  /**
+   * Per-token CSS custom-property overrides applied to
+   * `document.documentElement` at boot and on provider switch.
+   * Keys must be CSS custom-property names starting with `--tmx-` or
+   * `--chc-` (the TMX / courthive-components token families). Values
+   * are CSS color / length / font strings.
+   *
+   * Example:
+   *   { '--tmx-accent-blue': '#1a5276', '--tmx-bg-primary': '#f4f6f8' }
+   */
+  themeTokens?: Record<string, string>;
+  /**
+   * Optional URL to a provider-hosted stylesheet that the client
+   * appends to `<head>` so it cascades over the bundled CSS. Escape
+   * hatch for theming beyond the token surface (fonts, layout,
+   * animations). Prefer `themeTokens` when possible — the URL hatch
+   * adds a network dependency and requires curating against
+   * bundle-internal selectors.
+   */
+  stylesheetUrl?: string;
 }
 
 export interface ProviderPermissions {
