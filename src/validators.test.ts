@@ -226,16 +226,206 @@ describe('validateSettings', () => {
       expect(issues[0].code).toBe('wrongType');
     });
 
-    it('accepts settings-only policy keys', () => {
+    it('accepts well-formed scheduling/scoring/seeding policy shapes from factory defaults', () => {
       expect(
         validateSettings({
           policies: {
-            schedulingPolicy: { startTime: '09:00' },
-            scoringPolicy: { variant: 'standard' },
-            seedingPolicy: { method: 'random' },
+            schedulingPolicy: {
+              allowModificationWhenMatchUpsScheduled: { courts: false, venues: false },
+              defaultTimes: {
+                averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
+                recoveryTimes: [{ minutes: { default: 60 } }],
+              },
+              defaultDailyLimits: { SINGLES: 2, DOUBLES: 2, total: 3 },
+              matchUpAverageTimes: [
+                {
+                  matchUpFormatCodes: ['SET3-S:6/TB7'],
+                  averageTimes: [{ categoryNames: [], minutes: { default: 90 } }],
+                },
+              ],
+              matchUpRecoveryTimes: [
+                {
+                  matchUpFormatCodes: ['SET3-S:6/TB7'],
+                  recoveryTimes: [{ categoryTypes: ['ADULT'], minutes: { default: 60 } }],
+                },
+              ],
+              matchUpDailyLimits: [],
+            },
+            scoringPolicy: {
+              requireParticipantsForScoring: false,
+              requireAllPositionsAssigned: false,
+              allowChangePropagation: false,
+              defaultMatchUpFormat: 'SET3-S:6/TB7',
+              allowDeletionWithScoresPresent: { drawDefinitions: false, structures: false },
+              stage: { MAIN: { stageSequence: { 1: { requireAllPositionsAssigned: true } } } },
+              processCodes: { incompleteAssignmentsOnDefault: ['RANKING.IGNORE'] },
+              matchUpFormats: [
+                { matchUpFormat: 'SET3-S:6/TB7', description: 'Best of 3 tiebreak sets', categoryNames: [] },
+              ],
+              matchUpStatusCodes: {
+                WALKOVER: [{ matchUpStatusCode: 'W1', label: 'Injury', matchUpStatusCodeDisplay: 'Wo [inj]' }],
+              },
+            },
+            seedingPolicy: {
+              seedingProfile: {
+                drawTypes: { ROUND_ROBIN: { positioning: 'WATERFALL' } },
+                positioning: 'SEPARATE',
+              },
+              validSeedPositions: { ignore: true },
+              duplicateSeedNumbers: true,
+              drawSizeProgression: true,
+              containerByesIgnoreSeeding: true,
+              policyName: 'USTA SEEDING',
+              seedsCountThresholds: [{ drawSize: 16, minimumParticipantCount: 12, seedsCount: 4 }],
+            },
           },
         }),
       ).toEqual([]);
+    });
+
+    it('rejects unknown schedulingPolicy keys', () => {
+      const issues = validateSettings({ policies: { schedulingPolicy: { startTime: '09:00' } } });
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toEqual({
+        path: 'policies.schedulingPolicy.startTime',
+        code: 'unknownField',
+        message: 'unknown schedulingPolicy key "startTime"',
+      });
+    });
+
+    it('rejects wrong-typed schedulingPolicy interior values', () => {
+      const issues = validateSettings({
+        policies: {
+          schedulingPolicy: {
+            allowModificationWhenMatchUpsScheduled: { courts: 'no' },
+            defaultDailyLimits: { SINGLES: '2' },
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.allowModificationWhenMatchUpsScheduled.courts',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.defaultDailyLimits.SINGLES',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a number'),
+      });
+    });
+
+    it('rejects unknown scoringPolicy keys and wrong-typed booleans', () => {
+      const issues = validateSettings({
+        policies: {
+          scoringPolicy: {
+            variant: 'standard',
+            requireParticipantsForScoring: 'yes',
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.variant',
+        code: 'unknownField',
+        message: 'unknown scoringPolicy key "variant"',
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.requireParticipantsForScoring',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+    });
+
+    it('rejects malformed scoringPolicy.matchUpFormats entries', () => {
+      const issues = validateSettings({
+        policies: {
+          scoringPolicy: {
+            matchUpFormats: [{ description: 'no format key' }, 'not an object'],
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.matchUpFormats[0].matchUpFormat',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a string'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.matchUpFormats[1]',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an object'),
+      });
+    });
+
+    it('rejects malformed scoringPolicy.matchUpStatusCodes entries', () => {
+      const issues = validateSettings({
+        policies: {
+          scoringPolicy: {
+            matchUpStatusCodes: {
+              WALKOVER: [{ label: 'Injury' }],
+            },
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.matchUpStatusCodes.WALKOVER[0].matchUpStatusCode',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a string'),
+      });
+    });
+
+    it('rejects scoringPolicy.stage.stageSequence wrong-typed leaf', () => {
+      const issues = validateSettings({
+        policies: {
+          scoringPolicy: {
+            stage: { MAIN: { stageSequence: { 1: { requireAllPositionsAssigned: 'yes' } } } },
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.stage.MAIN.stageSequence.1.requireAllPositionsAssigned',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+    });
+
+    it('rejects unknown seedingPolicy keys and malformed seedsCountThresholds', () => {
+      const issues = validateSettings({
+        policies: {
+          seedingPolicy: {
+            method: 'random',
+            seedsCountThresholds: [{ drawSize: '16', minimumParticipantCount: 12, seedsCount: 4 }],
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.method',
+        code: 'unknownField',
+        message: 'unknown seedingPolicy key "method"',
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.seedsCountThresholds[0].drawSize',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a number'),
+      });
+    });
+
+    it('rejects unknown seedingProfile keys and wrong-typed positioning', () => {
+      const issues = validateSettings({
+        policies: {
+          seedingPolicy: {
+            seedingProfile: { foo: 'bar', positioning: 99 },
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.seedingProfile.foo',
+        code: 'unknownField',
+        message: expect.stringContaining('unknown key'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.seedingProfile.positioning',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a string'),
+      });
     });
   });
 
@@ -348,10 +538,10 @@ describe('validateSettings', () => {
       expect(issues[0].disallowedValues).toEqual(['U99']);
     });
 
-    it('accepts settings-only policy keys regardless of caps', () => {
+    it('accepts a well-formed settings-only policy regardless of caps', () => {
       expect(
         validateSettings(
-          { policies: { schedulingPolicy: { startTime: '09:00' } } },
+          { policies: { schedulingPolicy: { defaultDailyLimits: { SINGLES: 2, total: 3 } } } },
           { policies: { allowedMatchUpFormats: ['SET3-S:6/TB7'] } },
         ),
       ).toEqual([]);

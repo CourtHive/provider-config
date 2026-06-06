@@ -393,6 +393,467 @@ function validateSettingsPolicies(
           });
         }
       }
+    } else if (key === 'schedulingPolicy') {
+      validateSchedulingPolicy(v, `${path}.${key}`, issues);
+    } else if (key === 'scoringPolicy') {
+      validateScoringPolicy(v, `${path}.${key}`, issues);
+    } else if (key === 'seedingPolicy') {
+      validateSeedingPolicy(v, `${path}.${key}`, issues);
+    }
+  }
+}
+
+// ── Interior policy shapes ──
+//
+// These validators encode the field universes accepted by the factory engine
+// as of factory v5. Source of truth is `factory/src/fixtures/policies/`:
+// POLICY_SCHEDULING_DEFAULT / POLICY_SCHEDULING_NO_DAILY_LIMITS,
+// POLICY_SCORING_DEFAULT  / POLICY_SCORING_USTA,
+// POLICY_SEEDING_DEFAULT  / POLICY_SEEDING_ITF / POLICY_SEEDING_NATIONAL /
+// POLICY_SEEDING_BYES. When factory adds a new policy field, this file needs
+// the same field added or writes that use it will be rejected here.
+
+const SCHEDULING_POLICY_KEYS = new Set([
+  'allowModificationWhenMatchUpsScheduled',
+  'defaultTimes',
+  'defaultDailyLimits',
+  'matchUpAverageTimes',
+  'matchUpRecoveryTimes',
+  'matchUpDailyLimits',
+]);
+
+const SCORING_POLICY_KEYS = new Set([
+  'requireParticipantsForScoring',
+  'requireAllPositionsAssigned',
+  'allowChangePropagation',
+  'defaultMatchUpFormat',
+  'allowDeletionWithScoresPresent',
+  'stage',
+  'processCodes',
+  'matchUpFormats',
+  'matchUpStatusCodes',
+]);
+
+const SEEDING_POLICY_KEYS = new Set([
+  'seedingProfile',
+  'validSeedPositions',
+  'duplicateSeedNumbers',
+  'drawSizeProgression',
+  'containerByesIgnoreSeeding',
+  'policyName',
+  'seedsCountThresholds',
+]);
+
+function validateSchedulingPolicy(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!SCHEDULING_POLICY_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown schedulingPolicy key "${key}"` });
+      continue;
+    }
+    const v = value[key];
+    const fieldPath = `${path}.${key}`;
+    if (key === 'allowModificationWhenMatchUpsScheduled') {
+      validateOptionalBoolMap(v, fieldPath, new Set(['courts', 'venues']), issues);
+    } else if (key === 'defaultTimes') {
+      validateDefaultTimes(v, fieldPath, issues);
+    } else if (key === 'defaultDailyLimits') {
+      validateNumberMap(v, fieldPath, issues);
+    } else if (key === 'matchUpAverageTimes') {
+      validateFormatTimeBlockArray(v, fieldPath, 'averageTimes', issues);
+    } else if (key === 'matchUpRecoveryTimes') {
+      validateFormatTimeBlockArray(v, fieldPath, 'recoveryTimes', issues);
+    } else if (key === 'matchUpDailyLimits') {
+      if (!Array.isArray(v)) {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be an array` });
+      }
+    }
+  }
+}
+
+function validateScoringPolicy(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!SCORING_POLICY_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown scoringPolicy key "${key}"` });
+      continue;
+    }
+    const v = value[key];
+    const fieldPath = `${path}.${key}`;
+    if (
+      key === 'requireParticipantsForScoring' ||
+      key === 'requireAllPositionsAssigned' ||
+      key === 'allowChangePropagation'
+    ) {
+      if (v !== undefined && typeof v !== 'boolean') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a boolean` });
+      }
+    } else if (key === 'defaultMatchUpFormat') {
+      if (typeof v !== 'string') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a string` });
+      }
+    } else if (key === 'allowDeletionWithScoresPresent') {
+      validateOptionalBoolMap(v, fieldPath, new Set(['drawDefinitions', 'structures']), issues);
+    } else if (key === 'stage') {
+      validateStageMap(v, fieldPath, issues);
+    } else if (key === 'processCodes') {
+      validateStringArrayMap(v, fieldPath, issues);
+    } else if (key === 'matchUpFormats') {
+      validateMatchUpFormats(v, fieldPath, issues);
+    } else if (key === 'matchUpStatusCodes') {
+      validateMatchUpStatusCodes(v, fieldPath, issues);
+    }
+  }
+}
+
+function validateSeedingPolicy(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!SEEDING_POLICY_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown seedingPolicy key "${key}"` });
+      continue;
+    }
+    const v = value[key];
+    const fieldPath = `${path}.${key}`;
+    if (key === 'seedingProfile') {
+      validateSeedingProfile(v, fieldPath, issues);
+    } else if (key === 'validSeedPositions') {
+      validateOptionalBoolMap(v, fieldPath, new Set(['ignore']), issues);
+    } else if (
+      key === 'duplicateSeedNumbers' ||
+      key === 'drawSizeProgression' ||
+      key === 'containerByesIgnoreSeeding'
+    ) {
+      if (typeof v !== 'boolean') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a boolean` });
+      }
+    } else if (key === 'policyName') {
+      if (typeof v !== 'string') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a string` });
+      }
+    } else if (key === 'seedsCountThresholds') {
+      validateSeedsCountThresholds(v, fieldPath, issues);
+    }
+  }
+}
+
+// ── Shared interior helpers ──
+
+function validateOptionalBoolMap(
+  value: unknown,
+  path: string,
+  allowedKeys: Set<string>,
+  issues: ValidationIssue[],
+): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const k of Object.keys(value)) {
+    if (!allowedKeys.has(k)) {
+      issues.push({ path: `${path}.${k}`, code: 'unknownField', message: `unknown key "${k}" under ${path}` });
+      continue;
+    }
+    if (typeof value[k] !== 'boolean') {
+      issues.push({ path: `${path}.${k}`, code: 'wrongType', message: `${path}.${k} must be a boolean` });
+    }
+  }
+}
+
+function validateNumberMap(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object of string → number` });
+    return;
+  }
+  for (const k of Object.keys(value)) {
+    if (typeof value[k] !== 'number') {
+      issues.push({ path: `${path}.${k}`, code: 'wrongType', message: `${path}.${k} must be a number` });
+    }
+  }
+}
+
+function validateStringArrayMap(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object of string → string[]` });
+    return;
+  }
+  for (const k of Object.keys(value)) {
+    if (!isStringArray(value[k])) {
+      issues.push({ path: `${path}.${k}`, code: 'wrongType', message: `${path}.${k} must be an array of strings` });
+    }
+  }
+}
+
+function validateDefaultTimes(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  const allowedKeys = new Set(['averageTimes', 'recoveryTimes']);
+  for (const k of Object.keys(value)) {
+    if (!allowedKeys.has(k)) {
+      issues.push({ path: `${path}.${k}`, code: 'unknownField', message: `unknown key "${k}" under ${path}` });
+      continue;
+    }
+    if (!Array.isArray(value[k])) {
+      issues.push({ path: `${path}.${k}`, code: 'wrongType', message: `${path}.${k} must be an array` });
+      continue;
+    }
+    for (let i = 0; i < value[k].length; i++) {
+      if (!isPlainObject(value[k][i])) {
+        issues.push({
+          path: `${path}.${k}[${i}]`,
+          code: 'wrongType',
+          message: `${path}.${k}[${i}] must be an object`,
+        });
+      }
+    }
+  }
+}
+
+function validateFormatTimeBlockArray(
+  value: unknown,
+  path: string,
+  innerKey: 'averageTimes' | 'recoveryTimes',
+  issues: ValidationIssue[],
+): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an array` });
+    return;
+  }
+  for (let i = 0; i < value.length; i++) {
+    const entry = value[i];
+    const entryPath = `${path}[${i}]`;
+    if (!isPlainObject(entry)) {
+      issues.push({ path: entryPath, code: 'wrongType', message: `${entryPath} must be an object` });
+      continue;
+    }
+    if (!isStringArray(entry.matchUpFormatCodes)) {
+      issues.push({
+        path: `${entryPath}.matchUpFormatCodes`,
+        code: 'wrongType',
+        message: `${entryPath}.matchUpFormatCodes must be an array of strings`,
+      });
+    }
+    if (!Array.isArray(entry[innerKey])) {
+      issues.push({
+        path: `${entryPath}.${innerKey}`,
+        code: 'wrongType',
+        message: `${entryPath}.${innerKey} must be an array`,
+      });
+    }
+  }
+}
+
+function validateStageMap(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object keyed by stage name` });
+    return;
+  }
+  for (const stage of Object.keys(value)) {
+    const stageEntry = value[stage];
+    const stagePath = `${path}.${stage}`;
+    if (!isPlainObject(stageEntry)) {
+      issues.push({ path: stagePath, code: 'wrongType', message: `${stagePath} must be an object` });
+      continue;
+    }
+    if (stageEntry.stageSequence === undefined) continue;
+    if (!isPlainObject(stageEntry.stageSequence)) {
+      issues.push({
+        path: `${stagePath}.stageSequence`,
+        code: 'wrongType',
+        message: `${stagePath}.stageSequence must be an object keyed by sequence number`,
+      });
+      continue;
+    }
+    for (const seq of Object.keys(stageEntry.stageSequence)) {
+      const seqEntry = stageEntry.stageSequence[seq];
+      const seqPath = `${stagePath}.stageSequence.${seq}`;
+      if (!isPlainObject(seqEntry)) {
+        issues.push({ path: seqPath, code: 'wrongType', message: `${seqPath} must be an object` });
+        continue;
+      }
+      if (
+        seqEntry.requireAllPositionsAssigned !== undefined &&
+        typeof seqEntry.requireAllPositionsAssigned !== 'boolean'
+      ) {
+        issues.push({
+          path: `${seqPath}.requireAllPositionsAssigned`,
+          code: 'wrongType',
+          message: `${seqPath}.requireAllPositionsAssigned must be a boolean`,
+        });
+      }
+    }
+  }
+}
+
+function validateMatchUpFormats(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an array` });
+    return;
+  }
+  for (let i = 0; i < value.length; i++) {
+    const entry = value[i];
+    const entryPath = `${path}[${i}]`;
+    if (!isPlainObject(entry)) {
+      issues.push({ path: entryPath, code: 'wrongType', message: `${entryPath} must be an object` });
+      continue;
+    }
+    if (typeof entry.matchUpFormat !== 'string') {
+      issues.push({
+        path: `${entryPath}.matchUpFormat`,
+        code: 'wrongType',
+        message: `${entryPath}.matchUpFormat must be a string`,
+      });
+    }
+    if (entry.description !== undefined && typeof entry.description !== 'string') {
+      issues.push({
+        path: `${entryPath}.description`,
+        code: 'wrongType',
+        message: `${entryPath}.description must be a string`,
+      });
+    }
+    if (entry.categoryNames !== undefined && !isStringArray(entry.categoryNames)) {
+      issues.push({
+        path: `${entryPath}.categoryNames`,
+        code: 'wrongType',
+        message: `${entryPath}.categoryNames must be an array of strings`,
+      });
+    }
+    if (entry.categoryTypes !== undefined && !isStringArray(entry.categoryTypes)) {
+      issues.push({
+        path: `${entryPath}.categoryTypes`,
+        code: 'wrongType',
+        message: `${entryPath}.categoryTypes must be an array of strings`,
+      });
+    }
+  }
+}
+
+function validateMatchUpStatusCodes(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object keyed by matchUpStatus` });
+    return;
+  }
+  for (const status of Object.keys(value)) {
+    const entries = value[status];
+    const statusPath = `${path}.${status}`;
+    if (!Array.isArray(entries)) {
+      issues.push({ path: statusPath, code: 'wrongType', message: `${statusPath} must be an array` });
+      continue;
+    }
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const entryPath = `${statusPath}[${i}]`;
+      if (!isPlainObject(entry)) {
+        issues.push({ path: entryPath, code: 'wrongType', message: `${entryPath} must be an object` });
+        continue;
+      }
+      if (typeof entry.matchUpStatusCode !== 'string') {
+        issues.push({
+          path: `${entryPath}.matchUpStatusCode`,
+          code: 'wrongType',
+          message: `${entryPath}.matchUpStatusCode must be a string`,
+        });
+      }
+      for (const optionalStringKey of ['matchUpStatusCodeDisplay', 'label', 'description']) {
+        if (entry[optionalStringKey] !== undefined && typeof entry[optionalStringKey] !== 'string') {
+          issues.push({
+            path: `${entryPath}.${optionalStringKey}`,
+            code: 'wrongType',
+            message: `${entryPath}.${optionalStringKey} must be a string`,
+          });
+        }
+      }
+    }
+  }
+}
+
+function validateSeedingProfile(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  const allowedKeys = new Set(['drawTypes', 'positioning']);
+  for (const k of Object.keys(value)) {
+    if (!allowedKeys.has(k)) {
+      issues.push({ path: `${path}.${k}`, code: 'unknownField', message: `unknown key "${k}" under ${path}` });
+      continue;
+    }
+    if (k === 'positioning') {
+      if (typeof value[k] !== 'string') {
+        issues.push({ path: `${path}.${k}`, code: 'wrongType', message: `${path}.${k} must be a string` });
+      }
+    } else if (k === 'drawTypes') {
+      if (!isPlainObject(value[k])) {
+        issues.push({
+          path: `${path}.${k}`,
+          code: 'wrongType',
+          message: `${path}.${k} must be an object keyed by draw type`,
+        });
+        continue;
+      }
+      for (const drawType of Object.keys(value[k])) {
+        const dtEntry = value[k][drawType];
+        const dtPath = `${path}.${k}.${drawType}`;
+        if (!isPlainObject(dtEntry)) {
+          issues.push({ path: dtPath, code: 'wrongType', message: `${dtPath} must be an object` });
+          continue;
+        }
+        if (dtEntry.positioning !== undefined && typeof dtEntry.positioning !== 'string') {
+          issues.push({
+            path: `${dtPath}.positioning`,
+            code: 'wrongType',
+            message: `${dtPath}.positioning must be a string`,
+          });
+        }
+      }
+    }
+  }
+}
+
+function validateSeedsCountThresholds(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an array` });
+    return;
+  }
+  for (let i = 0; i < value.length; i++) {
+    const entry = value[i];
+    const entryPath = `${path}[${i}]`;
+    if (!isPlainObject(entry)) {
+      issues.push({ path: entryPath, code: 'wrongType', message: `${entryPath} must be an object` });
+      continue;
+    }
+    for (const numericKey of ['drawSize', 'minimumParticipantCount', 'seedsCount']) {
+      if (typeof entry[numericKey] !== 'number') {
+        issues.push({
+          path: `${entryPath}.${numericKey}`,
+          code: 'wrongType',
+          message: `${entryPath}.${numericKey} must be a number`,
+        });
+      }
     }
   }
 }
