@@ -427,6 +427,138 @@ describe('validateSettings', () => {
         message: expect.stringContaining('must be a string'),
       });
     });
+
+    it('rejects malformed schedulingPolicy.matchUpAverageTimes entries', () => {
+      const issues = validateSettings({
+        policies: {
+          schedulingPolicy: {
+            matchUpAverageTimes: [
+              { matchUpFormatCodes: 'SET3-S:6/TB7', averageTimes: [] },
+              { matchUpFormatCodes: ['SET3-S:6/TB7'], averageTimes: 'oops' },
+            ],
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.matchUpAverageTimes[0].matchUpFormatCodes',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array of strings'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.matchUpAverageTimes[1].averageTimes',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array'),
+      });
+    });
+
+    it('rejects schedulingPolicy.defaultTimes with non-array inner block', () => {
+      const issues = validateSettings({
+        policies: { schedulingPolicy: { defaultTimes: { averageTimes: 'oops', recoveryTimes: 42 } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.defaultTimes.averageTimes',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.defaultTimes.recoveryTimes',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array'),
+      });
+    });
+
+    it('rejects schedulingPolicy.matchUpDailyLimits non-array', () => {
+      const issues = validateSettings({
+        policies: { schedulingPolicy: { matchUpDailyLimits: { foo: 1 } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.schedulingPolicy.matchUpDailyLimits',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array'),
+      });
+    });
+
+    it('rejects scoringPolicy.processCodes with non-string-array value', () => {
+      const issues = validateSettings({
+        policies: { scoringPolicy: { processCodes: { incompleteAssignmentsOnDefault: 'RANKING.IGNORE' } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.processCodes.incompleteAssignmentsOnDefault',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array of strings'),
+      });
+    });
+
+    it('rejects scoringPolicy.defaultMatchUpFormat non-string', () => {
+      const issues = validateSettings({
+        policies: { scoringPolicy: { defaultMatchUpFormat: 42 } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.defaultMatchUpFormat',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a string'),
+      });
+    });
+
+    it('rejects scoringPolicy.allowDeletionWithScoresPresent unknown sub-key', () => {
+      const issues = validateSettings({
+        policies: { scoringPolicy: { allowDeletionWithScoresPresent: { events: true } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.allowDeletionWithScoresPresent.events',
+        code: 'unknownField',
+        message: expect.stringContaining('unknown key'),
+      });
+    });
+
+    it('rejects seedingPolicy non-boolean toggles and seedsCountThresholds top-level non-array', () => {
+      const issues = validateSettings({
+        policies: {
+          seedingPolicy: {
+            duplicateSeedNumbers: 'yes',
+            drawSizeProgression: 1,
+            seedsCountThresholds: { drawSize: 16 },
+          },
+        },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.duplicateSeedNumbers',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.drawSizeProgression',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.seedsCountThresholds',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an array'),
+      });
+    });
+
+    it('rejects seedingPolicy.seedingProfile.drawTypes with non-object draw-type entry', () => {
+      const issues = validateSettings({
+        policies: { seedingPolicy: { seedingProfile: { drawTypes: 'oops' } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.seedingProfile.drawTypes',
+        code: 'wrongType',
+        message: expect.stringContaining('must be an object keyed by draw type'),
+      });
+    });
+
+    it('rejects seedingPolicy.validSeedPositions unknown sub-key', () => {
+      const issues = validateSettings({
+        policies: { seedingPolicy: { validSeedPositions: { strict: true } } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.seedingPolicy.validSeedPositions.strict',
+        code: 'unknownField',
+        message: expect.stringContaining('unknown key'),
+      });
+    });
   });
 
   describe('caps-respect — boolean permissions', () => {
