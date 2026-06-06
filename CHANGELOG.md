@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/CourtHive/provider-config/compare/v0.4.0...v0.5.0) (2026-06-06)
+
+
+### Features
+
+* **validators:** deeper L3 type-checking on policy interiors ([#23](https://github.com/CourtHive/provider-config/issues/23)) ([c621d1b](https://github.com/CourtHive/provider-config/commit/c621d1bd250680bde5a36721f535bf90e5672df0))
+
 ## [0.4.0](https://github.com/CourtHive/provider-config/compare/v0.3.0...v0.4.0) (2026-05-31)
 
 
