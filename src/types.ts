@@ -103,6 +103,29 @@ export interface AllowedCategory {
 }
 
 /**
+ * A named federation tier system the provider supports for
+ * `Tournament.tournamentTier` (e.g. `'ITF_JUNIOR'` with display name
+ * `'ITF Junior'`). Surfaced as a select in the TMX edit-tournament
+ * drawer when present in `allowedTierSystems`; absent the drawer falls
+ * back to a free-form text input.
+ *
+ * `values?: string[]` constrains the tier *value* field to a fixed list
+ * (e.g. `'J1' … 'J500'` for ITF Junior). When omitted, value stays
+ * free-form — useful for sports like ATP/WTA whose federations introduce
+ * new tier names mid-year.
+ *
+ * Schema: `Mentat/planning/TOURNAMENT_LEVEL_AND_TIER.md` Phase 2.5.
+ */
+export interface AllowedTierSystem {
+  /** Federation namespace stored on `Tournament.tournamentTier.system`. */
+  system: string;
+  /** Human-friendly label used in the drawer's select. */
+  displayName?: string;
+  /** Optional fixed value list — when present, the value field also becomes a select. */
+  values?: string[];
+}
+
+/**
  * Per-print-type composition policies. Opaque to the server — the
  * shape is owned by pdf-factory's `CompositionConfig` type, validated
  * client-side by the editor. Stored as JSON in
@@ -178,6 +201,16 @@ export interface ProviderPolicyDefaults {
   allowedMatchUpFormats?: string[];
   /** Restrict event categories to this list */
   allowedCategories?: AllowedCategory[];
+  /**
+   * Federation tier systems the provider supports for
+   * `Tournament.tournamentTier`. When non-empty, TMX's edit-tournament
+   * drawer renders the tier system as a select (with optional
+   * per-system value enumeration) instead of a free-form text input.
+   * Absent or empty → today's free-form behaviour. Pre-existing tiers
+   * whose system isn't in the list render as a disabled fallback
+   * option so we never silently drop one.
+   */
+  allowedTierSystems?: AllowedTierSystem[];
   /** Per-print-type composition policies (pdf-factory CompositionConfig per type) */
   printPolicies?: PrintPoliciesByType;
 }
@@ -258,6 +291,12 @@ export interface ProviderCapsPolicies {
   allowedMatchUpFormats?: string[];
   /** Universe of event categories the provider may offer */
   allowedCategories?: AllowedCategory[];
+  /**
+   * Universe of federation tier systems the provider may surface in
+   * its drawer. Provider-side `allowedTierSystems` must be a subset of
+   * this list when the caps list is non-empty.
+   */
+  allowedTierSystems?: AllowedTierSystem[];
 }
 
 /**
@@ -392,6 +431,7 @@ export const ARRAY_PERMISSION_KEYS: ReadonlyArray<ArrayPermissionKey> = [
 export const ARRAY_POLICY_KEYS: ReadonlyArray<keyof ProviderPolicyDefaults> = [
   'allowedMatchUpFormats',
   'allowedCategories',
+  'allowedTierSystems',
 ] as const;
 
 /**

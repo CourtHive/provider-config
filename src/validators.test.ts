@@ -177,6 +177,33 @@ describe('validateCaps', () => {
     expect(issues[0].code).toBe('wrongType');
   });
 
+  it('accepts well-formed allowedTierSystems', () => {
+    expect(
+      validateCaps({
+        policies: {
+          allowedTierSystems: [
+            { system: 'ITF_JUNIOR', displayName: 'ITF Junior', values: ['J1', 'J100', 'J500'] },
+            { system: 'ATP' },
+          ],
+        },
+      }),
+    ).toEqual([]);
+  });
+
+  it('rejects malformed allowedTierSystems', () => {
+    const issues = validateCaps({
+      policies: { allowedTierSystems: [{ displayName: 'no system' }] },
+    });
+    expect(issues[0].code).toBe('wrongType');
+  });
+
+  it('rejects allowedTierSystems with non-string values inside the values array', () => {
+    const issues = validateCaps({
+      policies: { allowedTierSystems: [{ system: 'ITF_JUNIOR', values: ['J1', 5 as any] }] },
+    });
+    expect(issues[0].code).toBe('wrongType');
+  });
+
   it('accepts well-formed integrations', () => {
     expect(validateCaps({ integrations: { ssoProvider: 'ioncourt' } })).toEqual([]);
   });
@@ -745,6 +772,31 @@ describe('validateSettings', () => {
       );
       expect(issues[0].code).toBe('exceedsCap');
       expect(issues[0].disallowedValues).toEqual(['U99']);
+    });
+
+    it('accepts allowedTierSystems narrowing within caps universe', () => {
+      expect(
+        validateSettings(
+          { policies: { allowedTierSystems: [{ system: 'ITF_JUNIOR' }] } },
+          { policies: { allowedTierSystems: [{ system: 'ITF_JUNIOR' }, { system: 'ATP' }] } },
+        ),
+      ).toEqual([]);
+    });
+
+    it('REJECTS allowedTierSystems adding systems outside caps universe', () => {
+      const issues = validateSettings(
+        { policies: { allowedTierSystems: [{ system: 'ITF_JUNIOR' }, { system: 'WTA' }] } },
+        { policies: { allowedTierSystems: [{ system: 'ITF_JUNIOR' }, { system: 'ATP' }] } },
+      );
+      expect(issues[0].code).toBe('exceedsCap');
+      expect(issues[0].disallowedValues).toEqual(['WTA']);
+    });
+
+    it('accepts allowedTierSystems against an empty caps universe (no constraint)', () => {
+      // An empty / missing caps universe means "no provisioner constraint"
+      // — settings are free to declare whatever systems the provider needs.
+      // Mirrors how the allowedMatchUpFormats caps universe behaves.
+      expect(validateSettings({ policies: { allowedTierSystems: [{ system: 'BWF' }] } }, { policies: {} })).toEqual([]);
     });
 
     it('accepts a well-formed settings-only policy regardless of caps', () => {

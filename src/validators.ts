@@ -62,7 +62,7 @@ const THEME_TOKEN_PREFIXES = ['--tmx-', '--chc-'];
 const CAPS_PERMISSION_KEY_SET = new Set<string>([...BOOLEAN_PERMISSION_KEYS, ...ARRAY_PERMISSION_KEYS]);
 const SETTINGS_PERMISSION_KEY_SET = CAPS_PERMISSION_KEY_SET;
 
-const CAPS_POLICY_KEYS = new Set(['allowedMatchUpFormats', 'allowedCategories']);
+const CAPS_POLICY_KEYS = new Set(['allowedMatchUpFormats', 'allowedCategories', 'allowedTierSystems']);
 const SETTINGS_POLICY_KEYS = new Set([
   'schedulingPolicy',
   'scoringPolicy',
@@ -70,6 +70,7 @@ const SETTINGS_POLICY_KEYS = new Set([
   'rankingPointsPolicy',
   'allowedMatchUpFormats',
   'allowedCategories',
+  'allowedTierSystems',
 ]);
 
 const SETTINGS_DEFAULTS_KEYS = new Set([
@@ -331,6 +332,14 @@ function validateCapsPolicies(value: unknown, path: string, issues: ValidationIs
           message: `${key} must be an array of { ageCategoryCode, categoryName? } objects`,
         });
       }
+    } else if (key === 'allowedTierSystems') {
+      if (!isTierSystemArray(value[key])) {
+        issues.push({
+          path: `${path}.${key}`,
+          code: 'wrongType',
+          message: `${key} must be an array of { system, displayName?, values? } objects`,
+        });
+      }
     }
   }
 }
@@ -391,6 +400,28 @@ function validateSettingsPolicies(
             path: `${path}.${key}`,
             code: 'exceedsCap',
             message: `${key} contains categories outside the provisioner-allowed universe`,
+            disallowedValues: disallowed,
+          });
+        }
+      }
+    } else if (key === 'allowedTierSystems') {
+      if (!isTierSystemArray(v)) {
+        issues.push({
+          path: `${path}.${key}`,
+          code: 'wrongType',
+          message: `${key} must be an array of { system, displayName?, values? } objects`,
+        });
+        continue;
+      }
+      const universe = capsPolicies.allowedTierSystems;
+      if (universe && universe.length > 0) {
+        const allowedSystems = new Set(universe.map((t) => t.system));
+        const disallowed = v.filter((t) => !allowedSystems.has(t.system)).map((t) => t.system);
+        if (disallowed.length > 0) {
+          issues.push({
+            path: `${path}.${key}`,
+            code: 'exceedsCap',
+            message: `${key} contains tier systems outside the provisioner-allowed universe`,
             disallowedValues: disallowed,
           });
         }
@@ -964,5 +995,16 @@ function isCategoryArray(v: unknown): v is Array<{ ageCategoryCode: string; cate
       isPlainObject(c) &&
       typeof c.ageCategoryCode === 'string' &&
       (c.categoryName === undefined || typeof c.categoryName === 'string'),
+  );
+}
+
+function isTierSystemArray(v: unknown): v is Array<{ system: string; displayName?: string; values?: string[] }> {
+  if (!Array.isArray(v)) return false;
+  return v.every(
+    (t) =>
+      isPlainObject(t) &&
+      typeof t.system === 'string' &&
+      (t.displayName === undefined || typeof t.displayName === 'string') &&
+      (t.values === undefined || isStringArray(t.values)),
   );
 }
