@@ -5,6 +5,7 @@ export {
   PERMISSIONS_DEFAULT_FALSE,
   RANKING_POINTS_POLICY_KINDS,
   type AllowedCategory,
+  type AllowedTierSystem,
   type ArrayPermissionKey,
   type BooleanPermissionKey,
   type CappablePermissionKey,
