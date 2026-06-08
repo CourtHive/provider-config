@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeEffectiveConfig, mergePermissions, mergePolicies } from './effective-config';
+import {
+  computeEffectiveConfig,
+  mergePermissions,
+  mergePolicies,
+  resolveRankingPointsPolicy,
+} from './effective-config';
 import { BOOLEAN_PERMISSION_KEYS, PERMISSIONS_DEFAULT_FALSE } from './types';
 
 describe('computeEffectiveConfig', () => {
@@ -362,6 +367,50 @@ describe('computeEffectiveConfig', () => {
       // effective shape — settings tier is the only source of truth.
       const out = computeEffectiveConfig({ participantPrivacy: { cityState: true } } as any, {});
       expect(out.participantPrivacy?.cityState).toBe(false);
+    });
+  });
+
+  describe('rankingPointsPolicy (settings-owned pass-through)', () => {
+    it('mergePolicies preserves a declared BASIC policy', () => {
+      const out = mergePolicies({}, { rankingPointsPolicy: { kind: 'BASIC' } });
+      expect(out.rankingPointsPolicy).toEqual({ kind: 'BASIC' });
+    });
+    it('mergePolicies preserves a declared CUSTOM policy with name/version', () => {
+      const out = mergePolicies(
+        {},
+        { rankingPointsPolicy: { kind: 'CUSTOM', name: 'BOBOCA seasonal', version: '2.1' } },
+      );
+      expect(out.rankingPointsPolicy).toEqual({ kind: 'CUSTOM', name: 'BOBOCA seasonal', version: '2.1' });
+    });
+    it('mergePolicies leaves rankingPointsPolicy undefined when settings omits it', () => {
+      const out = mergePolicies({}, {});
+      expect(out.rankingPointsPolicy).toBeUndefined();
+    });
+    it('mergePolicies ignores caps.rankingPointsPolicy (settings-tier owns; caps cap-not-yet-implemented)', () => {
+      const out = mergePolicies(
+        { rankingPointsPolicy: { kind: 'NATIONAL' } as any },
+        { rankingPointsPolicy: { kind: 'BASIC' } },
+      );
+      expect(out.rankingPointsPolicy).toEqual({ kind: 'BASIC' });
+    });
+  });
+
+  describe('resolveRankingPointsPolicy (default BASIC for pre-config-field providers)', () => {
+    it('returns BASIC when settings is undefined', () => {
+      expect(resolveRankingPointsPolicy(undefined)).toEqual({ kind: 'BASIC' });
+    });
+    it('returns BASIC when settings.rankingPointsPolicy is omitted', () => {
+      expect(resolveRankingPointsPolicy({})).toEqual({ kind: 'BASIC' });
+    });
+    it('returns BASIC when settings.rankingPointsPolicy.kind is missing (defensive)', () => {
+      expect(resolveRankingPointsPolicy({ rankingPointsPolicy: {} as any })).toEqual({ kind: 'BASIC' });
+    });
+    it('returns the declared policy when present', () => {
+      expect(
+        resolveRankingPointsPolicy({
+          rankingPointsPolicy: { kind: 'NATIONAL', name: 'USTA Junior', version: '2025.1' },
+        }),
+      ).toEqual({ kind: 'NATIONAL', name: 'USTA Junior', version: '2025.1' });
     });
   });
 });

@@ -113,6 +113,47 @@ export interface AllowedCategory {
  */
 export type PrintPoliciesByType = Record<string, unknown>;
 
+/**
+ * Closed enum classifying *who* is responsible for the ranking-points
+ * policy this provider uses to compute its rank lists. Not a pointer
+ * to a specific policy fixture in the factory — those vary per provider
+ * within each category.
+ *
+ *   - BASIC    — factory-bundled default. Public providers + anyone
+ *                who hasn't set up their own policy. Suitable for
+ *                exhibitions, demo data, and providers that haven't
+ *                yet authored their own scheme.
+ *   - CUSTOM   — provider has set up their own policy outside the
+ *                factory (e.g. seasonal series, club-specific rules).
+ *                The `name` / `version` fields identify it.
+ *   - NATIONAL — actual national governing body (USTA, ITF, etc.)
+ *                using their officially-sanctioned policy. Distinct
+ *                from CUSTOM because the policy carries federation
+ *                authority + downstream consumers (federation reports,
+ *                qualifying ladders) may treat NATIONAL rankings with
+ *                extra weight.
+ *
+ * Pre-config-field providers (no declared policy) resolve to BASIC
+ * via `resolveRankingPointsPolicy()`.
+ */
+export type RankingPointsPolicyKind = 'BASIC' | 'CUSTOM' | 'NATIONAL';
+
+export const RANKING_POINTS_POLICY_KINDS: readonly RankingPointsPolicyKind[] = ['BASIC', 'CUSTOM', 'NATIONAL'] as const;
+
+export interface RankingPointsPolicy {
+  /** Closed-enum classifier; required when the field is declared. */
+  kind: RankingPointsPolicyKind;
+  /**
+   * Human label identifying the specific policy (e.g. 'USTA Junior 2025',
+   * 'BOBOCA seasonal v2'). Optional for BASIC (BASIC is the basic);
+   * recommended for CUSTOM + NATIONAL so downstream consumers and
+   * operators can disambiguate without inspecting bundle internals.
+   */
+  name?: string;
+  /** Optional version string for traceability across re-publishes. */
+  version?: string;
+}
+
 export interface ProviderPolicyDefaults {
   /** Scheduling policy applied to new tournaments */
   schedulingPolicy?: any;
@@ -120,6 +161,19 @@ export interface ProviderPolicyDefaults {
   scoringPolicy?: any;
   /** Seeding policy */
   seedingPolicy?: any;
+  /**
+   * Ranking-points policy this provider uses for rank-list computation.
+   * Optional — absence means "no declared policy"; the resolver
+   * (`resolveRankingPointsPolicy`) returns `{ kind: 'BASIC' }` for that
+   * case to preserve back-compat with providers that pre-date this
+   * field (e.g. BOBOCA, which has been on BASIC since the rankings
+   * service shipped). TMX policy-picker UI should constrain to the
+   * declared policy when set; courthive-rankings should apply the
+   * matching policy at ingest; the per-provider /pub/#/rankings detail
+   * page reads the bundle's policy.name/version to describe what was
+   * applied.
+   */
+  rankingPointsPolicy?: RankingPointsPolicy;
   /** Restrict matchUp formats to this list (format codes) */
   allowedMatchUpFormats?: string[];
   /** Restrict event categories to this list */

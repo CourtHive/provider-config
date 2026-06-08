@@ -15,6 +15,7 @@
 import {
   ARRAY_PERMISSION_KEYS,
   BOOLEAN_PERMISSION_KEYS,
+  RANKING_POINTS_POLICY_KINDS,
   type ArrayPermissionKey,
   type BooleanPermissionKey,
   type ProviderConfigCaps,
@@ -66,6 +67,7 @@ const SETTINGS_POLICY_KEYS = new Set([
   'schedulingPolicy',
   'scoringPolicy',
   'seedingPolicy',
+  'rankingPointsPolicy',
   'allowedMatchUpFormats',
   'allowedCategories',
 ]);
@@ -399,6 +401,8 @@ function validateSettingsPolicies(
       validateScoringPolicy(v, `${path}.${key}`, issues);
     } else if (key === 'seedingPolicy') {
       validateSeedingPolicy(v, `${path}.${key}`, issues);
+    } else if (key === 'rankingPointsPolicy') {
+      validateRankingPointsPolicy(v, `${path}.${key}`, issues);
     }
   }
 }
@@ -546,6 +550,53 @@ function validateSeedingPolicy(value: unknown, path: string, issues: ValidationI
     } else if (key === 'seedsCountThresholds') {
       validateSeedsCountThresholds(v, fieldPath, issues);
     }
+  }
+}
+
+const RANKING_POINTS_POLICY_KEYS = new Set(['kind', 'name', 'version']);
+const RANKING_POINTS_POLICY_KIND_SET: Set<string> = new Set(RANKING_POINTS_POLICY_KINDS);
+
+function validateRankingPointsPolicy(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!RANKING_POINTS_POLICY_KEYS.has(key)) {
+      issues.push({
+        path: `${path}.${key}`,
+        code: 'unknownField',
+        message: `unknown rankingPointsPolicy key "${key}"`,
+      });
+      continue;
+    }
+    const v = (value as Record<string, unknown>)[key];
+    const fieldPath = `${path}.${key}`;
+    if (key === 'kind') {
+      if (typeof v !== 'string') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a string` });
+      } else if (!RANKING_POINTS_POLICY_KIND_SET.has(v)) {
+        issues.push({
+          path: fieldPath,
+          code: 'exceedsCap',
+          message: `${key} must be one of: ${[...RANKING_POINTS_POLICY_KIND_SET].join(', ')}`,
+          disallowedValues: [v],
+        });
+      }
+    } else if (key === 'name' || key === 'version') {
+      if (typeof v !== 'string') {
+        issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a string` });
+      }
+    }
+  }
+  // kind is required when the field is declared (i.e. when the object exists at all)
+  if (!Object.prototype.hasOwnProperty.call(value, 'kind')) {
+    issues.push({
+      path: `${path}.kind`,
+      code: 'wrongType',
+      message: `${path}.kind is required when rankingPointsPolicy is declared`,
+    });
   }
 }
 

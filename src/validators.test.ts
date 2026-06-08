@@ -559,6 +559,83 @@ describe('validateSettings', () => {
         message: expect.stringContaining('unknown key'),
       });
     });
+
+    describe('rankingPointsPolicy (closed-enum BASIC | CUSTOM | NATIONAL)', () => {
+      it('accepts BASIC alone', () => {
+        expect(validateSettings({ policies: { rankingPointsPolicy: { kind: 'BASIC' } } })).toEqual([]);
+      });
+      it('accepts CUSTOM with name + version', () => {
+        expect(
+          validateSettings({
+            policies: { rankingPointsPolicy: { kind: 'CUSTOM', name: 'BOBOCA seasonal', version: '2.1' } },
+          }),
+        ).toEqual([]);
+      });
+      it('accepts NATIONAL', () => {
+        expect(
+          validateSettings({ policies: { rankingPointsPolicy: { kind: 'NATIONAL', name: 'USTA Junior' } } }),
+        ).toEqual([]);
+      });
+      it('omits the field entirely → no issues (resolver applies BASIC default)', () => {
+        expect(validateSettings({ policies: {} })).toEqual([]);
+      });
+      it('rejects an unknown kind value', () => {
+        const issues = validateSettings({
+          policies: { rankingPointsPolicy: { kind: 'GLOBAL' as any } },
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy.kind',
+          code: 'exceedsCap',
+          message: expect.stringContaining('must be one of'),
+          disallowedValues: ['GLOBAL'],
+        });
+      });
+      it('rejects a missing kind when the object is declared', () => {
+        const issues = validateSettings({
+          policies: { rankingPointsPolicy: { name: 'BOBOCA' } as any },
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy.kind',
+          code: 'wrongType',
+          message: expect.stringContaining('is required'),
+        });
+      });
+      it('rejects a non-object value', () => {
+        const issues = validateSettings({
+          policies: { rankingPointsPolicy: 'BASIC' as any },
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy',
+          code: 'wrongType',
+          message: expect.stringContaining('must be an object'),
+        });
+      });
+      it('rejects unknown sub-keys', () => {
+        const issues = validateSettings({
+          policies: { rankingPointsPolicy: { kind: 'BASIC', source: 'foo' } as any },
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy.source',
+          code: 'unknownField',
+          message: expect.stringContaining('unknown rankingPointsPolicy key'),
+        });
+      });
+      it('rejects non-string name or version', () => {
+        const issues = validateSettings({
+          policies: { rankingPointsPolicy: { kind: 'CUSTOM', name: 42, version: true } as any },
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy.name',
+          code: 'wrongType',
+          message: expect.stringContaining('must be a string'),
+        });
+        expect(issues).toContainEqual({
+          path: 'policies.rankingPointsPolicy.version',
+          code: 'wrongType',
+          message: expect.stringContaining('must be a string'),
+        });
+      });
+    });
   });
 
   describe('caps-respect — boolean permissions', () => {

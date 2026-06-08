@@ -34,6 +34,7 @@ import {
   type ProviderConfigSettings,
   type ProviderPermissions,
   type ProviderPolicyDefaults,
+  type RankingPointsPolicy,
 } from './types';
 
 export function computeEffectiveConfig(
@@ -87,6 +88,11 @@ export function mergePolicies(
     schedulingPolicy: settings.schedulingPolicy,
     scoringPolicy: settings.scoringPolicy,
     seedingPolicy: settings.seedingPolicy,
+    // rankingPointsPolicy is settings-owned (provider declares its policy).
+    // Caps don't constrain it today — when they do (e.g. provisioner
+    // restricts a tier-1 provider to NATIONAL only), add the intersection
+    // check here following the allowedMatchUpFormats pattern.
+    rankingPointsPolicy: settings.rankingPointsPolicy,
   };
 
   const formats = intersectStringList(caps.allowedMatchUpFormats, settings.allowedMatchUpFormats);
@@ -96,6 +102,22 @@ export function mergePolicies(
   if (cats !== undefined) out.allowedCategories = cats;
 
   return out;
+}
+
+/**
+ * Resolve the effective ranking-points policy for a provider. Pre-config-
+ * field providers (no declared policy) default to BASIC for back-compat —
+ * BOBOCA's existing bundle already reports `policy.name: "BASIC"`, so
+ * treating undeclared as BASIC keeps that surface stable.
+ *
+ * Consumers (courthive-rankings ingest, TMX policy-picker UI, the
+ * /pub/#/rankings detail page) should call this rather than reading
+ * `settings.rankingPointsPolicy` directly so the default is uniform.
+ */
+export function resolveRankingPointsPolicy(settings: Partial<ProviderPolicyDefaults> | undefined): RankingPointsPolicy {
+  const declared = settings?.rankingPointsPolicy;
+  if (declared?.kind) return declared;
+  return { kind: 'BASIC' };
 }
 
 /**
