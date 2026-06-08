@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/CourtHive/provider-config/compare/v0.5.0...v0.6.0) (2026-06-08)
+
+
+### Features
+
+* **types:** allowedTierSystems on provider policy + caps ([9cec8ac](https://github.com/CourtHive/provider-config/commit/9cec8ac658b6ff566cfb67db78b91d1e5f741c3a))
+* **types:** export AllowedTierSystem ([4a0204f](https://github.com/CourtHive/provider-config/commit/4a0204f909aab31735b26b3c3650eb6960e80ee6))
+* **types:** rankingPointsPolicy field + resolver (closed-enum kind) ([305b670](https://github.com/CourtHive/provider-config/commit/305b67027347c4e2b66391b5b84964965e7da3fe))
+
 ## [0.5.0](https://github.com/CourtHive/provider-config/compare/v0.4.0...v0.5.0) (2026-06-06)
 
 
