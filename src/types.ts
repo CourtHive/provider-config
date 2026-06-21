@@ -95,6 +95,11 @@ export interface ProviderPermissions {
   canModifyTournamentDetails?: boolean;
   canModifyPolicies?: boolean;
   canAccessProviderAdmin?: boolean;
+
+  // ── Communication ──
+  /** Tournament chat. Defaults to `true` (enabled) — a provider may set it
+   *  false to disable chat across its tournaments. */
+  canUseChat?: boolean;
 }
 
 export interface AllowedCategory {
@@ -279,6 +284,7 @@ export type CappablePermissionKey =
   | 'canModifyTournamentDetails'
   | 'canModifyPolicies'
   | 'canAccessProviderAdmin'
+  | 'canUseChat'
   // Array (allowed-universe) caps
   | 'allowedDrawTypes'
   | 'allowedCreationMethods'
@@ -391,7 +397,8 @@ export type BooleanPermissionKey =
   | 'canUnpublish'
   | 'canModifyTournamentDetails'
   | 'canModifyPolicies'
-  | 'canAccessProviderAdmin';
+  | 'canAccessProviderAdmin'
+  | 'canUseChat';
 
 export type ArrayPermissionKey = 'allowedDrawTypes' | 'allowedCreationMethods' | 'allowedScoringApproaches';
 
@@ -420,6 +427,7 @@ export const BOOLEAN_PERMISSION_KEYS: ReadonlyArray<BooleanPermissionKey> = [
   'canModifyTournamentDetails',
   'canModifyPolicies',
   'canAccessProviderAdmin',
+  'canUseChat',
 ] as const;
 
 export const ARRAY_PERMISSION_KEYS: ReadonlyArray<ArrayPermissionKey> = [
