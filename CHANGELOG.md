@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/CourtHive/provider-config/compare/v0.6.0...v0.7.0) (2026-06-21)
+
+
+### Features
+
+* **permissions:** add canUseChat provider permission ([9a5172f](https://github.com/CourtHive/provider-config/commit/9a5172f88865bc6e91d8ddf082a616df864c778f))
+
 ## [0.6.0](https://github.com/CourtHive/provider-config/compare/v0.5.0...v0.6.0) (2026-06-08)
 
 
