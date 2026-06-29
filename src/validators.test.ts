@@ -212,6 +212,61 @@ describe('validateCaps', () => {
     const issues = validateCaps({ integrations: { customField: 'x' } });
     expect(issues[0].code).toBe('unknownField');
   });
+
+  describe('integrations.scoringLaunch', () => {
+    it('accepts EPIXODIC with no urlTemplate', () => {
+      expect(validateCaps({ integrations: { scoringLaunch: { app: 'EPIXODIC' } } })).toEqual([]);
+    });
+
+    it('accepts EMBEDDED with no urlTemplate', () => {
+      expect(validateCaps({ integrations: { scoringLaunch: { app: 'EMBEDDED' } } })).toEqual([]);
+    });
+
+    it('accepts EXTERNAL with a well-formed urlTemplate', () => {
+      const config = {
+        integrations: { scoringLaunch: { app: 'EXTERNAL', urlTemplate: 'https://ionsport.app/score/${matchUpId}' } },
+      };
+      expect(validateCaps(config)).toEqual([]);
+    });
+
+    it('rejects a non-object scoringLaunch', () => {
+      const issues = validateCaps({ integrations: { scoringLaunch: 'EPIXODIC' } });
+      expect(issues[0].code).toBe('wrongType');
+      expect(issues[0].path).toBe('integrations.scoringLaunch');
+    });
+
+    it('rejects an unknown app value', () => {
+      const issues = validateCaps({ integrations: { scoringLaunch: { app: 'BOGUS' } } });
+      expect(issues[0].code).toBe('exceedsCap');
+      expect(issues[0].path).toBe('integrations.scoringLaunch.app');
+    });
+
+    it('rejects a missing app', () => {
+      const issues = validateCaps({ integrations: { scoringLaunch: { urlTemplate: 'https://x/${matchUpId}' } } });
+      expect(issues.some((i) => i.path === 'integrations.scoringLaunch.app' && i.code === 'wrongType')).toBe(true);
+    });
+
+    it('rejects unknown scoringLaunch keys', () => {
+      const issues = validateCaps({ integrations: { scoringLaunch: { app: 'EPIXODIC', extra: 1 } } });
+      expect(issues.some((i) => i.path === 'integrations.scoringLaunch.extra' && i.code === 'unknownField')).toBe(true);
+    });
+
+    it('requires a non-empty urlTemplate for EXTERNAL', () => {
+      const missing = validateCaps({ integrations: { scoringLaunch: { app: 'EXTERNAL' } } });
+      expect(missing.some((i) => i.path === 'integrations.scoringLaunch.urlTemplate')).toBe(true);
+      const empty = validateCaps({ integrations: { scoringLaunch: { app: 'EXTERNAL', urlTemplate: '' } } });
+      expect(empty.some((i) => i.path === 'integrations.scoringLaunch.urlTemplate')).toBe(true);
+    });
+
+    it('rejects unknown placeholders in urlTemplate', () => {
+      const issues = validateCaps({
+        integrations: { scoringLaunch: { app: 'EXTERNAL', urlTemplate: 'https://x/${bogus}/${matchUpId}' } },
+      });
+      const issue = issues.find((i) => i.path === 'integrations.scoringLaunch.urlTemplate');
+      expect(issue?.code).toBe('exceedsCap');
+      expect(issue?.disallowedValues).toEqual(['bogus']);
+    });
+  });
 });
 
 describe('validateSettings', () => {

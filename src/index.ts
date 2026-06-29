@@ -23,7 +23,18 @@ export {
   type ProviderPolicyDefaults,
   type RankingPointsPolicy,
   type RankingPointsPolicyKind,
+  type ScoringLaunchApp,
+  type ScoringLaunchConfig,
 } from './types';
+
+export {
+  DEFAULT_SCORING_LAUNCH,
+  SCORING_LAUNCH_APPS,
+  SCORING_LAUNCH_PLACEHOLDERS,
+  resolveScoringLaunchUrl,
+  scoringLaunchPlaceholders,
+  type ScoringLaunchContext,
+} from './scoring-launch';
 
 export {
   computeEffectiveConfig,

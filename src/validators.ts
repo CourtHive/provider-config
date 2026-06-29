@@ -20,6 +20,7 @@ import {
   type BooleanPermissionKey,
   type ProviderConfigCaps,
 } from './types';
+import { SCORING_LAUNCH_APPS, SCORING_LAUNCH_PLACEHOLDERS, scoringLaunchPlaceholders } from './scoring-launch';
 
 export interface ValidationIssue {
   /** Dotted path to the offending field, e.g. "permissions.allowedDrawTypes" */
@@ -82,7 +83,10 @@ const SETTINGS_DEFAULTS_KEYS = new Set([
   'defaultPdfFont',
 ]);
 
-const INTEGRATIONS_ALLOWED_KEYS = new Set(['ssoProvider']);
+const INTEGRATIONS_ALLOWED_KEYS = new Set(['ssoProvider', 'scoringLaunch']);
+const SCORING_LAUNCH_KEYS = new Set(['app', 'urlTemplate']);
+const SCORING_LAUNCH_APP_SET: Set<string> = new Set(SCORING_LAUNCH_APPS);
+const SCORING_LAUNCH_PLACEHOLDER_SET: Set<string> = new Set(SCORING_LAUNCH_PLACEHOLDERS);
 
 // ── Caps validator ──
 
@@ -972,9 +976,65 @@ function validateIntegrations(value: unknown, path: string, issues: ValidationIs
       issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown integrations key "${key}"` });
       continue;
     }
+    if (key === 'scoringLaunch') {
+      validateScoringLaunch(value[key], `${path}.scoringLaunch`, issues);
+      continue;
+    }
     if (typeof value[key] !== 'string') {
       issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${key} must be a string` });
     }
+  }
+}
+
+function validateScoringLaunch(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!SCORING_LAUNCH_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown scoringLaunch key "${key}"` });
+    }
+  }
+
+  const app = value.app;
+  if (typeof app !== 'string') {
+    issues.push({ path: `${path}.app`, code: 'wrongType', message: 'app must be a string' });
+  } else if (!SCORING_LAUNCH_APP_SET.has(app)) {
+    issues.push({
+      path: `${path}.app`,
+      code: 'exceedsCap',
+      message: `app must be one of: ${[...SCORING_LAUNCH_APP_SET].join(', ')}`,
+      disallowedValues: [app],
+    });
+  }
+
+  const urlTemplate = value.urlTemplate;
+  if (urlTemplate !== undefined) {
+    if (typeof urlTemplate !== 'string') {
+      issues.push({ path: `${path}.urlTemplate`, code: 'wrongType', message: 'urlTemplate must be a string' });
+    } else {
+      const unknownPlaceholders = scoringLaunchPlaceholders(urlTemplate).filter(
+        (name) => !SCORING_LAUNCH_PLACEHOLDER_SET.has(name),
+      );
+      if (unknownPlaceholders.length) {
+        issues.push({
+          path: `${path}.urlTemplate`,
+          code: 'exceedsCap',
+          message: `unknown placeholder(s): ${unknownPlaceholders.join(', ')}. Allowed: ${[...SCORING_LAUNCH_PLACEHOLDER_SET].join(', ')}`,
+          disallowedValues: unknownPlaceholders,
+        });
+      }
+    }
+  }
+
+  // urlTemplate is required (and must be non-empty) only for EXTERNAL.
+  if (app === 'EXTERNAL' && (typeof urlTemplate !== 'string' || urlTemplate.length === 0)) {
+    issues.push({
+      path: `${path}.urlTemplate`,
+      code: 'wrongType',
+      message: 'urlTemplate is required when app is "EXTERNAL"',
+    });
   }
 }
 

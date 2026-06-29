@@ -247,8 +247,33 @@ export interface ProviderDefaults {
   defaultPdfFont?: string;
 }
 
+/**
+ * Which scoring app courthive-public launches for a per-matchUp
+ * "Score this match" action.
+ *   EPIXODIC — CourtHive Epixodic deep-link (the default when unset)
+ *   EMBEDDED — courthive-public's own in-page `/track` scoring shell
+ *   EXTERNAL — a provider's own app via `urlTemplate` (e.g. IONSport)
+ */
+export type ScoringLaunchApp = 'EPIXODIC' | 'EMBEDDED' | 'EXTERNAL';
+
+export interface ScoringLaunchConfig {
+  app: ScoringLaunchApp;
+  /**
+   * Required when `app === 'EXTERNAL'`. A URL with any of the supported
+   * placeholders — `${tournamentId}`, `${matchUpId}`, `${eventId}`,
+   * `${drawId}` — substituted at launch time via `resolveScoringLaunchUrl`.
+   * Ignored for EPIXODIC / EMBEDDED.
+   */
+  urlTemplate?: string;
+}
+
 export interface ProviderIntegrations {
   ssoProvider?: string;
+  /**
+   * Provider-declared scoring-app launch target for courthive-public.
+   * Caps-owned (provisioner controls integrations). Absent → EPIXODIC.
+   */
+  scoringLaunch?: ScoringLaunchConfig;
 }
 
 // ── Cap-tier schema (provisioner-owned) ──
