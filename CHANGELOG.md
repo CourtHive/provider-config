@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/CourtHive/provider-config/compare/v0.7.0...v0.8.0) (2026-06-29)
+
+
+### Features
+
+* **scoring-launch:** add provider scoringLaunch integration config ([e4c2391](https://github.com/CourtHive/provider-config/commit/e4c239146e2f3a436d2ee9882f0bb5b68528d90b))
+
 ## [0.7.0](https://github.com/CourtHive/provider-config/compare/v0.6.0...v0.7.0) (2026-06-21)
 
 
