@@ -371,6 +371,15 @@ export interface ProviderConfigSettings {
   policies?: ProviderPolicyDefaults;
   defaults?: ProviderDefaults;
   /**
+   * Provider-admin-owned branding. Merged field-by-field OVER any
+   * `caps.branding` the provisioner set (settings wins where present;
+   * `themeTokens` maps merge key-by-key). This lets a provider white-label
+   * itself without provisioner credentials. There is no lock mechanism yet —
+   * a provisioner cannot force a branding value the provider can't override;
+   * add one here + in `computeEffectiveConfig` if brand enforcement is needed.
+   */
+  branding?: ProviderBranding;
+  /**
    * Granular privacy toggles for what the provider opts to publish
    * about its participants. Owned by the provider-admin alone —
    * provisioner has no say here. Each toggle relaxes a single
@@ -378,6 +387,17 @@ export interface ProviderConfigSettings {
    * field is `false` (privacy-first).
    */
   participantPrivacy?: ProviderParticipantPrivacy;
+  /**
+   * The provider's selected participant-privacy POLICY — a complete factory
+   * `POLICY_TYPE_PARTICIPANT` attribute-filter (inner shape, i.e. the value
+   * under the `participant` key: `{ policyName, participant: {...} }`), chosen
+   * from the policy catalog. This is the richer successor to the boolean
+   * `participantPrivacy` toggles: it is attached to the provider's
+   * tournamentRecords so the factory strips/allows attributes during
+   * participant queries. Kept opaque here (validated structurally) so the
+   * factory owns the attribute schema.
+   */
+  participantPrivacyPolicy?: Record<string, any>;
 }
 
 // ── Effective shape (delivered to TMX) ──
@@ -394,6 +414,7 @@ export interface ProviderConfigData {
   defaults?: ProviderDefaults;
   integrations?: ProviderIntegrations;
   participantPrivacy?: ProviderParticipantPrivacy;
+  participantPrivacyPolicy?: Record<string, any>;
 }
 
 // ── Helper enumerations for the merge function and validators ──

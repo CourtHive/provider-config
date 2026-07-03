@@ -38,7 +38,14 @@ export type ValidationIssueCode = 'unknownField' | 'wrongType' | 'exceedsCap';
 // ── Allowed top-level keys ──
 
 const CAPS_TOP_LEVEL_KEYS = new Set(['branding', 'permissions', 'policies', 'integrations']);
-const SETTINGS_TOP_LEVEL_KEYS = new Set(['permissions', 'policies', 'defaults', 'participantPrivacy']);
+const SETTINGS_TOP_LEVEL_KEYS = new Set([
+  'branding',
+  'permissions',
+  'policies',
+  'defaults',
+  'participantPrivacy',
+  'participantPrivacyPolicy',
+]);
 const PARTICIPANT_PRIVACY_KEYS = new Set(['cityState']);
 
 const BRANDING_KEYS = new Set([
@@ -129,11 +136,23 @@ export function validateSettings(settings: unknown, caps: ProviderConfigCaps = {
       issues.push({
         path: key,
         code: 'unknownField',
-        message: `unknown settings top-level key "${key}"; expected one of permissions/policies/defaults`,
+        message: `unknown settings top-level key "${key}"; expected one of branding/permissions/policies/defaults`,
       });
     }
   }
 
+  // branding is provider-editable (settings tier); same structural rules as
+  // caps.branding — no caps-ceiling check because branding has no lock tier.
+  validateBranding(settings.branding, 'branding', issues);
+  // participantPrivacyPolicy is an opaque factory policy object — validate only
+  // that it is a plain object; the factory owns its attribute schema.
+  if (settings.participantPrivacyPolicy !== undefined && !isPlainObject(settings.participantPrivacyPolicy)) {
+    issues.push({
+      path: 'participantPrivacyPolicy',
+      code: 'wrongType',
+      message: 'participantPrivacyPolicy must be an object',
+    });
+  }
   validateSettingsPermissions(settings.permissions, caps.permissions, 'permissions', issues);
   validateSettingsPolicies(settings.policies, caps.policies, 'policies', issues);
   validateDefaults(settings.defaults, 'defaults', issues);

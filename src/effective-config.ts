@@ -6,7 +6,8 @@
  * Merge rules (per the field-ownership matrix in
  * `Mentat/planning/TMX_PROVIDER_CONFIG_FEATURES.md`):
  *
- *   branding              caps owns (settings has no branding field)
+ *   branding              settings overrides caps field-by-field
+ *                         (themeTokens maps merge key-by-key); no lock tier
  *   integrations          caps owns
  *   defaults              settings owns
  *   policies.scheduling/scoring/seedingPolicy
@@ -29,6 +30,7 @@ import {
   BOOLEAN_PERMISSION_KEYS,
   PERMISSIONS_DEFAULT_FALSE,
   type AllowedCategory,
+  type ProviderBranding,
   type ProviderConfigCaps,
   type ProviderConfigData,
   type ProviderConfigSettings,
@@ -42,7 +44,7 @@ export function computeEffectiveConfig(
   settings: ProviderConfigSettings = {},
 ): ProviderConfigData {
   return {
-    branding: caps.branding,
+    branding: mergeBranding(caps.branding, settings.branding),
     permissions: mergePermissions(caps.permissions, settings.permissions),
     policies: mergePolicies(caps.policies, settings.policies),
     defaults: settings.defaults,
@@ -52,11 +54,39 @@ export function computeEffectiveConfig(
     // provider and its participants. Default = false (privacy-first)
     // when absent.
     participantPrivacy: { cityState: settings.participantPrivacy?.cityState === true },
+    // The selected privacy POLICY (settings-owned) is passed through verbatim.
+    // It is attached to tournamentRecords for the factory to apply; consumers
+    // that need the provider's default privacy read it here.
+    participantPrivacyPolicy: settings.participantPrivacyPolicy,
   };
 }
 
 function defaultForPermission(key: keyof ProviderPermissions): boolean {
   return !PERMISSIONS_DEFAULT_FALSE.has(key);
+}
+
+/**
+ * Merge branding tiers: provider-owned `settings.branding` overrides
+ * provisioner `caps.branding` field-by-field (settings wins where it defines a
+ * value). `themeTokens` maps merge key-by-key so a provider can add tokens
+ * without dropping provisioner-seeded ones. Returns `undefined` when neither
+ * tier defines any branding — preserving the prior "no branding" contract.
+ *
+ * No lock mechanism: caps.branding is a default/fallback, not a ceiling. If
+ * brand enforcement is later required, gate individual fields here.
+ */
+export function mergeBranding(
+  caps: ProviderBranding | undefined,
+  settings: ProviderBranding | undefined,
+): ProviderBranding | undefined {
+  if (!caps && !settings) return undefined;
+
+  const merged: ProviderBranding = { ...caps, ...settings };
+
+  const themeTokens = { ...caps?.themeTokens, ...settings?.themeTokens };
+  if (Object.keys(themeTokens).length > 0) merged.themeTokens = themeTokens;
+
+  return merged;
 }
 
 export function mergePermissions(

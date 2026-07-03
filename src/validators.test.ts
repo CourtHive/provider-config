@@ -279,10 +279,15 @@ describe('validateSettings', () => {
       expect(validateSettings(null)[0].code).toBe('wrongType');
     });
 
-    it('rejects branding (settings has no branding)', () => {
+    it('accepts branding (provider-editable settings tier)', () => {
       const issues = validateSettings({ branding: { appName: 'X' } });
-      expect(issues[0].code).toBe('unknownField');
-      expect(issues[0].path).toBe('branding');
+      expect(issues).toHaveLength(0);
+    });
+
+    it('validates branding structure in settings (rejects unknown branding key)', () => {
+      const issues = validateSettings({ branding: { bogus: 'X' } } as unknown);
+      expect(issues[0]?.code).toBe('unknownField');
+      expect(issues[0]?.path).toBe('branding.bogus');
     });
 
     it('rejects integrations (settings has no integrations)', () => {
