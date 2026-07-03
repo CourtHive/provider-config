@@ -9,21 +9,39 @@ import {
 import { BOOLEAN_PERMISSION_KEYS, PERMISSIONS_DEFAULT_FALSE } from './types';
 
 describe('computeEffectiveConfig', () => {
-  describe('branding (caps-only)', () => {
-    it('takes branding from caps', () => {
+  describe('branding (settings overrides caps field-by-field)', () => {
+    it('takes branding from caps when settings has none', () => {
       const result = computeEffectiveConfig({ branding: { appName: 'Acme' } }, {});
       expect(result.branding).toEqual({ appName: 'Acme' });
     });
 
-    it('returns undefined branding when caps has none', () => {
+    it('returns undefined branding when neither tier has any', () => {
       expect(computeEffectiveConfig({}, {}).branding).toBeUndefined();
     });
 
-    it('ignores any branding-shaped data in settings (not part of settings type)', () => {
-      // settings has no `branding` field, but verify caps still wins if a typed
-      // caller somehow put one through.
-      const result = computeEffectiveConfig({ branding: { appName: 'Caps' } }, {});
-      expect(result.branding?.appName).toBe('Caps');
+    it('takes branding from settings when caps has none', () => {
+      const result = computeEffectiveConfig({}, { branding: { appName: 'Provider' } });
+      expect(result.branding).toEqual({ appName: 'Provider' });
+    });
+
+    it('lets settings override caps per field, keeping caps fields settings omits', () => {
+      const result = computeEffectiveConfig(
+        { branding: { appName: 'Caps', accentColor: '#000' } },
+        { branding: { appName: 'Provider' } },
+      );
+      expect(result.branding?.appName).toBe('Provider');
+      expect(result.branding?.accentColor).toBe('#000');
+    });
+
+    it('merges themeTokens key-by-key with settings winning on conflicts', () => {
+      const result = computeEffectiveConfig(
+        { branding: { themeTokens: { '--tmx-accent-blue': '#111', '--tmx-bg-primary': '#eee' } } },
+        { branding: { themeTokens: { '--tmx-accent-blue': '#222' } } },
+      );
+      expect(result.branding?.themeTokens).toEqual({
+        '--tmx-accent-blue': '#222',
+        '--tmx-bg-primary': '#eee',
+      });
     });
   });
 
