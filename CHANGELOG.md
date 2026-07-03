@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/CourtHive/provider-config/compare/v0.8.0...v0.9.0) (2026-07-03)
+
+
+### Features
+
+* **settings:** add provider-editable branding and participant-privacy policy ([#37](https://github.com/CourtHive/provider-config/issues/37)) ([71dd025](https://github.com/CourtHive/provider-config/commit/71dd02545ec188e9f57e79db5b34e9ceffb267f0))
+
 ## [0.8.0](https://github.com/CourtHive/provider-config/compare/v0.7.0...v0.8.0) (2026-06-29)
 
 
