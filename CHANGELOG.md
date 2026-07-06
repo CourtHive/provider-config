@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/CourtHive/provider-config/compare/v0.9.0...v0.10.0) (2026-07-06)
+
+
+### Features
+
+* gate proColumnResolve on canModifySchedule ([6a0adb9](https://github.com/CourtHive/provider-config/commit/6a0adb91eaa591dbe9a69bd0d2ef83ac2c208597))
+
+
+### Documentation
+
+* expand readme api reference and add CLAUDE.md ([0620f8f](https://github.com/CourtHive/provider-config/commit/0620f8fcbee5e0f96198c95eb01c84d4993d8770))
+
 ## [0.9.0](https://github.com/CourtHive/provider-config/compare/v0.8.0...v0.9.0) (2026-07-03)
 
 
