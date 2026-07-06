@@ -31,6 +31,7 @@ describe('MUTATION_PERMISSIONS map', () => {
     expect(MUTATION_PERMISSIONS.addMatchUpScheduleItems).toBe('canModifySchedule');
     expect(MUTATION_PERMISSIONS.bulkScheduleMatchUps).toBe('canModifySchedule');
     expect(MUTATION_PERMISSIONS.proAutoSchedule).toBe('canModifySchedule');
+    expect(MUTATION_PERMISSIONS.proColumnResolve).toBe('canModifySchedule');
   });
 
   it('covers court availability', () => {

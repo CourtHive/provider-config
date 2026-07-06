@@ -52,6 +52,7 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   addMatchUpScheduleItems: 'canModifySchedule',
   bulkScheduleMatchUps: 'canModifySchedule',
   proAutoSchedule: 'canModifySchedule',
+  proColumnResolve: 'canModifySchedule',
 
   // Venues + courts
   addVenue: 'canCreateVenues',
