@@ -34,10 +34,19 @@ import {
   type ProviderConfigCaps,
   type ProviderConfigData,
   type ProviderConfigSettings,
+  type ProviderCrowdScoringConfig,
   type ProviderPermissions,
   type ProviderPolicyDefaults,
   type RankingPointsPolicy,
 } from './types';
+
+/**
+ * Default crowd-scoring state when a provider declares no `crowdScoring`
+ * config. Deliberately ON so the feature works without per-provider setup.
+ * Flip to `false` here to make crowd scoring opt-in once more providers
+ * onboard — the single source of truth for the default.
+ */
+export const CROWD_SCORING_ENABLED_BY_DEFAULT = true;
 
 export function computeEffectiveConfig(
   caps: ProviderConfigCaps = {},
@@ -54,11 +63,27 @@ export function computeEffectiveConfig(
     // provider and its participants. Default = false (privacy-first)
     // when absent.
     participantPrivacy: { cityState: settings.participantPrivacy?.cityState === true },
+    // crowdScoring is provider-owned (settings tier only) and passed through
+    // verbatim; consumers apply the ON-by-default via resolveCrowdScoringEnabled.
+    crowdScoring: settings.crowdScoring,
     // The selected privacy POLICY (settings-owned) is passed through verbatim.
     // It is attached to tournamentRecords for the factory to apply; consumers
     // that need the provider's default privacy read it here.
     participantPrivacyPolicy: settings.participantPrivacyPolicy,
   };
+}
+
+/**
+ * Resolve whether the crowd poll/promote surface is enabled for a provider.
+ * Consumers (TMX crowd poller + promote UI, courthive-public relay submit)
+ * MUST call this rather than reading `crowdScoring.enabled` directly so the
+ * ON-by-default is uniform and the flip point stays single-sourced.
+ *
+ * Accepts either the effective `ProviderConfigData` or a settings object —
+ * anything carrying an optional `crowdScoring`.
+ */
+export function resolveCrowdScoringEnabled(config: { crowdScoring?: ProviderCrowdScoringConfig } | undefined): boolean {
+  return config?.crowdScoring?.enabled ?? CROWD_SCORING_ENABLED_BY_DEFAULT;
 }
 
 function defaultForPermission(key: keyof ProviderPermissions): boolean {

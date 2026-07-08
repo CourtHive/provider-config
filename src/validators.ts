@@ -45,8 +45,10 @@ const SETTINGS_TOP_LEVEL_KEYS = new Set([
   'defaults',
   'participantPrivacy',
   'participantPrivacyPolicy',
+  'crowdScoring',
 ]);
 const PARTICIPANT_PRIVACY_KEYS = new Set(['cityState']);
+const CROWD_SCORING_KEYS = new Set(['enabled']);
 
 const BRANDING_KEYS = new Set([
   'navbarLogoUrl',
@@ -157,8 +159,29 @@ export function validateSettings(settings: unknown, caps: ProviderConfigCaps = {
   validateSettingsPolicies(settings.policies, caps.policies, 'policies', issues);
   validateDefaults(settings.defaults, 'defaults', issues);
   validateParticipantPrivacy(settings.participantPrivacy, 'participantPrivacy', issues);
+  validateCrowdScoring(settings.crowdScoring, 'crowdScoring', issues);
 
   return issues;
+}
+
+// ── Crowd scoring (settings tier only) ──
+
+function validateCrowdScoring(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!CROWD_SCORING_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown crowdScoring key "${key}"` });
+      continue;
+    }
+    const v = (value as Record<string, unknown>)[key];
+    if (v !== undefined && typeof v !== 'boolean') {
+      issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${path}.${key} must be a boolean` });
+    }
+  }
 }
 
 // ── Participant privacy (settings tier only) ──

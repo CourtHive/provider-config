@@ -16,6 +16,7 @@ export {
   type ProviderConfigCaps,
   type ProviderConfigData,
   type ProviderConfigSettings,
+  type ProviderCrowdScoringConfig,
   type ProviderDefaults,
   type ProviderIntegrations,
   type ProviderParticipantPrivacy,
@@ -37,9 +38,11 @@ export {
 } from './scoring-launch';
 
 export {
+  CROWD_SCORING_ENABLED_BY_DEFAULT,
   computeEffectiveConfig,
   mergePermissions,
   mergePolicies,
+  resolveCrowdScoringEnabled,
   resolveRankingPointsPolicy,
 } from './effective-config';
 

@@ -313,6 +313,29 @@ describe('validateSettings', () => {
       expect(issues[0].code).toBe('wrongType');
     });
 
+    it('accepts well-formed crowdScoring', () => {
+      expect(validateSettings({ crowdScoring: { enabled: false } })).toEqual([]);
+      expect(validateSettings({ crowdScoring: {} })).toEqual([]);
+    });
+
+    it('rejects a non-object crowdScoring', () => {
+      const issues = validateSettings({ crowdScoring: true } as unknown);
+      expect(issues[0].code).toBe('wrongType');
+      expect(issues[0].path).toBe('crowdScoring');
+    });
+
+    it('rejects an unknown crowdScoring key', () => {
+      const issues = validateSettings({ crowdScoring: { bogus: true } } as unknown);
+      expect(issues[0].code).toBe('unknownField');
+      expect(issues[0].path).toBe('crowdScoring.bogus');
+    });
+
+    it('rejects a non-boolean crowdScoring.enabled', () => {
+      const issues = validateSettings({ crowdScoring: { enabled: 'yes' } } as unknown);
+      expect(issues[0].code).toBe('wrongType');
+      expect(issues[0].path).toBe('crowdScoring.enabled');
+    });
+
     it('accepts well-formed scheduling/scoring/seeding policy shapes from factory defaults', () => {
       expect(
         validateSettings({

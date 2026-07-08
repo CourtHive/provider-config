@@ -343,6 +343,22 @@ export interface ProviderParticipantPrivacy {
 }
 
 /**
+ * Provider-admin-owned crowd-scoring configuration. Governs whether the
+ * crowd poll/promote surface (TMX reconciliation + courthive-public relay
+ * submit) is active for the provider's tournaments.
+ *
+ * Absent → enabled (see `resolveCrowdScoringEnabled` +
+ * `CROWD_SCORING_ENABLED_BY_DEFAULT`). The default is deliberately ON so the
+ * feature works without per-provider setup; it may be flipped to opt-in later
+ * once more providers onboard.
+ */
+export interface ProviderCrowdScoringConfig {
+  /** Explicit switch. `false` disables the crowd surface for this provider;
+   *  `true` / absent leaves it on. */
+  enabled?: boolean;
+}
+
+/**
  * Provisioner-owned configuration — the "ceiling" the provider
  * cannot exceed. Provider admin writes to ProviderConfigSettings
  * may not violate caps.
@@ -388,6 +404,12 @@ export interface ProviderConfigSettings {
    */
   participantPrivacy?: ProviderParticipantPrivacy;
   /**
+   * Provider-admin-owned crowd-scoring switch. Owned by the provider alone —
+   * the provisioner has no caps surface here. Absent → enabled (default ON,
+   * see `resolveCrowdScoringEnabled`).
+   */
+  crowdScoring?: ProviderCrowdScoringConfig;
+  /**
    * The provider's selected participant-privacy POLICY — a complete factory
    * `POLICY_TYPE_PARTICIPANT` attribute-filter (inner shape, i.e. the value
    * under the `participant` key: `{ policyName, participant: {...} }`), chosen
@@ -414,6 +436,7 @@ export interface ProviderConfigData {
   defaults?: ProviderDefaults;
   integrations?: ProviderIntegrations;
   participantPrivacy?: ProviderParticipantPrivacy;
+  crowdScoring?: ProviderCrowdScoringConfig;
   participantPrivacyPolicy?: Record<string, any>;
 }
 

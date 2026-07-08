@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CROWD_SCORING_ENABLED_BY_DEFAULT,
   computeEffectiveConfig,
   mergePermissions,
   mergePolicies,
+  resolveCrowdScoringEnabled,
   resolveRankingPointsPolicy,
 } from './effective-config';
 import { BOOLEAN_PERMISSION_KEYS, PERMISSIONS_DEFAULT_FALSE } from './types';
@@ -385,6 +387,51 @@ describe('computeEffectiveConfig', () => {
       // effective shape — settings tier is the only source of truth.
       const out = computeEffectiveConfig({ participantPrivacy: { cityState: true } } as any, {});
       expect(out.participantPrivacy?.cityState).toBe(false);
+    });
+  });
+
+  describe('crowdScoring (settings-only — provider-owned, ON by default)', () => {
+    it('passes crowdScoring through from settings verbatim', () => {
+      const out = computeEffectiveConfig({}, { crowdScoring: { enabled: false } });
+      expect(out.crowdScoring).toEqual({ enabled: false });
+    });
+
+    it('leaves crowdScoring undefined when settings omit it', () => {
+      const out = computeEffectiveConfig({}, {});
+      expect(out.crowdScoring).toBeUndefined();
+    });
+
+    it('ignores stray crowdScoring on caps (provider-owned, not provisioner-gated)', () => {
+      const out = computeEffectiveConfig({ crowdScoring: { enabled: false } } as any, {});
+      expect(out.crowdScoring).toBeUndefined();
+    });
+  });
+
+  describe('resolveCrowdScoringEnabled (ON by default)', () => {
+    it('defaults to enabled when config is undefined', () => {
+      expect(resolveCrowdScoringEnabled(undefined)).toBe(true);
+      expect(CROWD_SCORING_ENABLED_BY_DEFAULT).toBe(true);
+    });
+
+    it('defaults to enabled when crowdScoring is absent', () => {
+      expect(resolveCrowdScoringEnabled({})).toBe(true);
+    });
+
+    it('defaults to enabled when enabled is undefined', () => {
+      expect(resolveCrowdScoringEnabled({ crowdScoring: {} })).toBe(true);
+    });
+
+    it('returns false only when explicitly disabled', () => {
+      expect(resolveCrowdScoringEnabled({ crowdScoring: { enabled: false } })).toBe(false);
+    });
+
+    it('returns true when explicitly enabled', () => {
+      expect(resolveCrowdScoringEnabled({ crowdScoring: { enabled: true } })).toBe(true);
+    });
+
+    it('reads from an effective ProviderConfigData shape', () => {
+      const out = computeEffectiveConfig({}, { crowdScoring: { enabled: false } });
+      expect(resolveCrowdScoringEnabled(out)).toBe(false);
     });
   });
 
