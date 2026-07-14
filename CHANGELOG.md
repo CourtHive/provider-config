@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/CourtHive/provider-config/compare/v0.11.0...v0.11.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **deps:** pin typescript to 6.0.3 to block native ts7 ([bf0cea4](https://github.com/CourtHive/provider-config/commit/bf0cea4f28620be02db629993f658ab8dc3882ac))
+
 ## [0.11.0](https://github.com/CourtHive/provider-config/compare/v0.10.0...v0.11.0) (2026-07-08)
 
 
