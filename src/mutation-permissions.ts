@@ -32,6 +32,14 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   // assignment-to-matchUp surface is the gate-worthy one)
   addMatchUpOfficial: 'canCreateOfficials',
 
+  // Match personnel: scorekeeper/timekeeper nomination (crowd-scoring Phase D).
+  // Same match-role assignment shape as addMatchUpOfficial; gated on the same
+  // personnel-assignment permission. Could become a dedicated permission later.
+  assignMatchUpScorekeeper: 'canCreateOfficials',
+  removeMatchUpScorekeeper: 'canCreateOfficials',
+  assignMatchUpTimekeeper: 'canCreateOfficials',
+  removeMatchUpTimekeeper: 'canCreateOfficials',
+
   // Events
   addEvent: 'canCreateEvents',
   deleteEvents: 'canDeleteEvents',

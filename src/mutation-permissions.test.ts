@@ -13,6 +13,15 @@ describe('MUTATION_PERMISSIONS map', () => {
     expect(MUTATION_PERMISSIONS.addMatchUpOfficial).toBe('canCreateOfficials');
   });
 
+  it('gates scorekeeper/timekeeper nomination under canCreateOfficials', () => {
+    expect(MUTATION_PERMISSIONS.assignMatchUpScorekeeper).toBe('canCreateOfficials');
+    expect(MUTATION_PERMISSIONS.removeMatchUpScorekeeper).toBe('canCreateOfficials');
+    expect(MUTATION_PERMISSIONS.assignMatchUpTimekeeper).toBe('canCreateOfficials');
+    expect(MUTATION_PERMISSIONS.removeMatchUpTimekeeper).toBe('canCreateOfficials');
+    expect(isMutationAllowed('assignMatchUpScorekeeper', { canCreateOfficials: false })).toBe(false);
+    expect(isMutationAllowed('assignMatchUpScorekeeper', { canCreateOfficials: true })).toBe(true);
+  });
+
   it('covers event CRUD', () => {
     expect(MUTATION_PERMISSIONS.addEvent).toBe('canCreateEvents');
     expect(MUTATION_PERMISSIONS.deleteEvents).toBe('canDeleteEvents');
