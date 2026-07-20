@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/CourtHive/provider-config/compare/v0.11.1...v0.12.0) (2026-07-20)
+
+
+### Features
+
+* **permissions:** gate matchUp scorekeeper/timekeeper assignment on canCreateOfficials ([01a0c1e](https://github.com/CourtHive/provider-config/commit/01a0c1e858fa7bf18316c81c0b36e6d9738a55df))
+
 ## [0.11.1](https://github.com/CourtHive/provider-config/compare/v0.11.0...v0.11.1) (2026-07-14)
 
 
