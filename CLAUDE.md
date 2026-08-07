@@ -25,7 +25,8 @@ pnpm install              # Install dependencies (pnpm only)
 pnpm build                # rm -rf dist && tsc → dist/
 pnpm check-types          # TypeScript type check (tsc --noEmit)
 pnpm test                 # Vitest single run (vitest --run)
-pnpm lint                 # ESLint (eslint src --max-warnings 0)
+pnpm lint                 # ESLint — non-mutating, fails on any warning
+pnpm lint:fix             # ESLint with auto-fix (rewrites source)
 pnpm format               # Prettier on src/**/*.ts
 ```
 

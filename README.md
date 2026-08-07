@@ -396,7 +396,8 @@ Used by TMX `mutationRequest()` as a UI defense layer and by the server
 pnpm build         # rm -rf dist && tsc → dist/
 pnpm test          # vitest --run
 pnpm check-types   # tsc --noEmit
-pnpm lint          # eslint src --max-warnings 0
+pnpm lint          # ESLint — non-mutating, fails on any warning
+pnpm lint:fix      # ESLint with auto-fix (rewrites source)
 pnpm format        # prettier --write "src/**/*.ts"
 ```
 
