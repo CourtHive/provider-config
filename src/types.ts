@@ -131,6 +131,23 @@ export interface AllowedTierSystem {
 }
 
 /**
+ * A sanctioning rulebook the provider may file applications under.
+ *
+ * `governingBodyId` is the factory's sanctioning-policy key — the value that selects which
+ * lifecycle rules apply (`'itf'`, `'usta'`, `'generic'` are the policies the factory ships).
+ * It is NOT "who runs the software": most providers only ever file under one body, and the
+ * courthive-ams sanctioning wizard hides the field entirely when exactly one is configured.
+ *
+ * Absent or empty → the applicant chooses from every rulebook the factory ships.
+ */
+export interface AllowedGoverningBody {
+  /** Factory sanctioning policy id stored on the sanctioning record. */
+  governingBodyId: string;
+  /** Human-friendly label used in the applicant's select. */
+  displayName?: string;
+}
+
+/**
  * Per-print-type composition policies. Opaque to the server — the
  * shape is owned by pdf-factory's `CompositionConfig` type, validated
  * client-side by the editor. Stored as JSON in
@@ -216,6 +233,20 @@ export interface ProviderPolicyDefaults {
    * option so we never silently drop one.
    */
   allowedTierSystems?: AllowedTierSystem[];
+  /**
+   * Sanctioning rulebooks this provider may file under. Absent or empty → every rulebook the
+   * factory ships. When exactly one is configured the applicant is not asked at all.
+   */
+  allowedGoverningBodies?: AllowedGoverningBody[];
+  /**
+   * College divisions offerable on a sanctioning application (`'DI'`, `'DII'`, `'NAIA'`, …).
+   *
+   * College play is an ITA concern, not a universal one, so this is deliberately absent for
+   * almost every provider — and absent means the courthive-ams wizard does not render the
+   * College Division field AT ALL, rather than showing an irrelevant dropdown. Only a
+   * provisioner that runs college competition (today: the ITA) sets the cap that permits it.
+   */
+  allowedCollegeDivisions?: string[];
   /** Per-print-type composition policies (pdf-factory CompositionConfig per type) */
   printPolicies?: PrintPoliciesByType;
 }
@@ -328,6 +359,14 @@ export interface ProviderCapsPolicies {
    * this list when the caps list is non-empty.
    */
   allowedTierSystems?: AllowedTierSystem[];
+  /** Universe of sanctioning rulebooks the provider may file applications under. */
+  allowedGoverningBodies?: AllowedGoverningBody[];
+  /**
+   * Universe of college divisions the provider may offer. Provisioner-owned by design: this is
+   * how a college federation (the ITA) enables college classification for the providers it
+   * owns, while every other provider inherits nothing and never sees the field.
+   */
+  allowedCollegeDivisions?: string[];
 }
 
 /**
@@ -505,10 +544,16 @@ export const ARRAY_PERMISSION_KEYS: ReadonlyArray<ArrayPermissionKey> = [
   'allowedScoringApproaches',
 ] as const;
 
+// Every key here MUST be intersected in `mergePolicies` — a key listed but not merged is
+// silently dropped from the effective config, which is how `allowedTierSystems` shipped
+// unreachable to both TMX's tier select and the courthive-ams sanctioning wizard. There is a
+// conformance test over this list precisely so the next addition cannot repeat it.
 export const ARRAY_POLICY_KEYS: ReadonlyArray<keyof ProviderPolicyDefaults> = [
   'allowedMatchUpFormats',
   'allowedCategories',
   'allowedTierSystems',
+  'allowedGoverningBodies',
+  'allowedCollegeDivisions',
 ] as const;
 
 /**
