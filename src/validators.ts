@@ -72,7 +72,13 @@ const THEME_TOKEN_PREFIXES = ['--tmx-', '--chc-'];
 const CAPS_PERMISSION_KEY_SET = new Set<string>([...BOOLEAN_PERMISSION_KEYS, ...ARRAY_PERMISSION_KEYS]);
 const SETTINGS_PERMISSION_KEY_SET = CAPS_PERMISSION_KEY_SET;
 
-const CAPS_POLICY_KEYS = new Set(['allowedMatchUpFormats', 'allowedCategories', 'allowedTierSystems']);
+const CAPS_POLICY_KEYS = new Set([
+  'allowedMatchUpFormats',
+  'allowedCategories',
+  'allowedTierSystems',
+  'allowedGoverningBodies',
+  'allowedCollegeDivisions',
+]);
 const SETTINGS_POLICY_KEYS = new Set([
   'schedulingPolicy',
   'scoringPolicy',
@@ -81,6 +87,8 @@ const SETTINGS_POLICY_KEYS = new Set([
   'allowedMatchUpFormats',
   'allowedCategories',
   'allowedTierSystems',
+  'allowedGoverningBodies',
+  'allowedCollegeDivisions',
 ]);
 
 const SETTINGS_DEFAULTS_KEYS = new Set([
@@ -386,6 +394,16 @@ function validateCapsPolicies(value: unknown, path: string, issues: ValidationIs
           message: `${key} must be an array of { system, displayName?, values? } objects`,
         });
       }
+    } else if (key === 'allowedGoverningBodies') {
+      if (!isGoverningBodyArray(value[key])) {
+        issues.push({
+          path: `${path}.${key}`,
+          code: 'wrongType',
+          message: `${key} must be an array of { governingBodyId, displayName? } objects`,
+        });
+      }
+    } else if (key === 'allowedCollegeDivisions' && !isStringArray(value[key])) {
+      issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${key} must be an array of strings` });
     }
   }
 }
@@ -471,6 +489,46 @@ function validateSettingsPolicies(
             disallowedValues: disallowed,
           });
         }
+      }
+    } else if (key === 'allowedGoverningBodies') {
+      if (!isGoverningBodyArray(v)) {
+        issues.push({
+          path: `${path}.${key}`,
+          code: 'wrongType',
+          message: `${key} must be an array of { governingBodyId, displayName? } objects`,
+        });
+        continue;
+      }
+      const universe = capsPolicies.allowedGoverningBodies;
+      if (universe && universe.length > 0) {
+        const allowedBodies = new Set(universe.map((b) => b.governingBodyId));
+        const disallowed = v.filter((b) => !allowedBodies.has(b.governingBodyId)).map((b) => b.governingBodyId);
+        if (disallowed.length > 0) {
+          issues.push({
+            path: `${path}.${key}`,
+            code: 'exceedsCap',
+            message: `${key} contains governing bodies outside the provisioner-allowed universe`,
+            disallowedValues: disallowed,
+          });
+        }
+      }
+    } else if (key === 'allowedCollegeDivisions') {
+      if (!isStringArray(v)) {
+        issues.push({ path: `${path}.${key}`, code: 'wrongType', message: `${key} must be an array of strings` });
+        continue;
+      }
+      // College play is provisioner-enabled: with no cap universe a provider cannot grant
+      // itself divisions, unlike the other allowedX lists where an absent cap means no opinion.
+      const universe = capsPolicies.allowedCollegeDivisions;
+      const allowedDivisions = new Set(universe ?? []);
+      const disallowed = v.filter((division) => !allowedDivisions.has(division));
+      if (disallowed.length > 0) {
+        issues.push({
+          path: `${path}.${key}`,
+          code: 'exceedsCap',
+          message: `${key} contains divisions outside the provisioner-allowed universe`,
+          disallowedValues: disallowed,
+        });
       }
     } else if (key === 'schedulingPolicy') {
       validateSchedulingPolicy(v, `${path}.${key}`, issues);
@@ -1097,6 +1155,16 @@ function isCategoryArray(v: unknown): v is Array<{ ageCategoryCode: string; cate
       isPlainObject(c) &&
       typeof c.ageCategoryCode === 'string' &&
       (c.categoryName === undefined || typeof c.categoryName === 'string'),
+  );
+}
+
+function isGoverningBodyArray(v: unknown): v is Array<{ governingBodyId: string; displayName?: string }> {
+  if (!Array.isArray(v)) return false;
+  return v.every(
+    (b) =>
+      isPlainObject(b) &&
+      typeof b.governingBodyId === 'string' &&
+      (b.displayName === undefined || typeof b.displayName === 'string'),
   );
 }
 

@@ -156,6 +156,23 @@ export function mergePolicies(
   const cats = intersectCategoryList(caps.allowedCategories, settings.allowedCategories);
   if (cats !== undefined) out.allowedCategories = cats;
 
+  // allowedTierSystems was declared in both tiers, listed in ARRAY_POLICY_KEYS and documented
+  // as driving TMX's tier select — but never merged here, so it was dropped from every
+  // effective config and neither TMX's drawer nor the courthive-ams sanctioning wizard could
+  // ever see it. Intersect by `system`, mirroring categories-by-code.
+  const tiers = intersectKeyedList(caps.allowedTierSystems, settings.allowedTierSystems, (t) => t.system);
+  if (tiers !== undefined) out.allowedTierSystems = tiers;
+
+  const bodies = intersectKeyedList(
+    caps.allowedGoverningBodies,
+    settings.allowedGoverningBodies,
+    (b) => b.governingBodyId,
+  );
+  if (bodies !== undefined) out.allowedGoverningBodies = bodies;
+
+  const divisions = intersectStringList(caps.allowedCollegeDivisions, settings.allowedCollegeDivisions);
+  if (divisions !== undefined) out.allowedCollegeDivisions = divisions;
+
   return out;
 }
 
@@ -195,9 +212,18 @@ function intersectStringList(a?: string[], b?: string[]): string[] | undefined {
 
 /** Categories intersect by `ageCategoryCode`. */
 function intersectCategoryList(a?: AllowedCategory[], b?: AllowedCategory[]): AllowedCategory[] | undefined {
+  return intersectKeyedList(a, b, (c) => c.ageCategoryCode);
+}
+
+/**
+ * Intersect two object lists by a stable identity, following the same absent/empty semantics as
+ * the string and category helpers: an absent or empty list on either side means "no opinion",
+ * not "deny everything".
+ */
+function intersectKeyedList<T>(a: T[] | undefined, b: T[] | undefined, key: (item: T) => string): T[] | undefined {
   if (a === undefined && b === undefined) return undefined;
   if (a === undefined || a.length === 0) return b;
   if (b === undefined || b.length === 0) return a;
-  const codesB = new Set(b.map((c) => c.ageCategoryCode));
-  return a.filter((c) => codesB.has(c.ageCategoryCode));
+  const keysB = new Set(b.map(key));
+  return a.filter((item) => keysB.has(key(item)));
 }
