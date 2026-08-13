@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/CourtHive/provider-config/compare/v0.12.0...v0.13.0) (2026-08-13)
+
+
+### Features
+
+* **policies:** add governing bodies + college divisions, fix dropped tier systems ([#64](https://github.com/CourtHive/provider-config/issues/64)) ([feeb3ef](https://github.com/CourtHive/provider-config/commit/feeb3ef63eb54abf1e7998eacb77d24e9be22574))
+
 ## [0.12.0](https://github.com/CourtHive/provider-config/compare/v0.11.1...v0.12.0) (2026-08-07)
 
 
