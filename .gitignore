@@ -5,3 +5,10 @@ coverage
 *.tsbuildinfo
 .eslintcache
 .DS_Store
+
+# Per-session Claude Code state: `settings.local.json` is personal and
+# `.claude/worktrees/` holds git worktrees (architectural standard A8), so this
+# directory is tooling, never source. Untracked it shows as a permanent pending
+# change in every `git status` — and it is not merely cosmetic: a dirty repo
+# aborts the whole `bump-factory-consumers.sh` fan-out at preflight.
+.claude
