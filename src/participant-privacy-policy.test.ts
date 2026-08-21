@@ -147,3 +147,41 @@ describe('validation — participantPrivacyPolicyRef', () => {
     expect(validateSettings({ participantPrivacyPolicyReff: ITA }, {}).map((i) => i.code)).toContain('unknownField');
   });
 });
+
+describe('participantPrivacy.sex — the per-provider gender opt-in', () => {
+  const eff = (caps: any, settings: any) => computeEffectiveConfig(caps, settings).participantPrivacy;
+
+  it('is closed when nobody has said anything', () => {
+    // Privacy-first: the shipped default strips person.sex and that does not change.
+    expect(eff({}, {})?.sex).toBe(false);
+  });
+
+  it('opens when the provisioner enables it — the ITA case, set once for ~1,032 schools', () => {
+    expect(eff({ participantPrivacy: { sex: true } }, {})?.sex).toBe(true);
+  });
+
+  it('does NOT open on a provider asserting it alone', () => {
+    // A provider cannot grant itself an attribute the provisioner has not enabled.
+    expect(eff({}, { participantPrivacy: { sex: true } })?.sex).toBe(false);
+  });
+
+  it('lets a provider turn it back off — more private is always allowed', () => {
+    expect(eff({ participantPrivacy: { sex: true } }, { participantPrivacy: { sex: false } })?.sex).toBe(false);
+  });
+
+  it('stays open when the provider simply says nothing', () => {
+    expect(eff({ participantPrivacy: { sex: true } }, { participantPrivacy: {} })?.sex).toBe(true);
+  });
+
+  it('leaves cityState on its original settings-only rule', () => {
+    // Unchanged behaviour: nothing relying on cityState moves because sex arrived.
+    expect(eff({}, { participantPrivacy: { cityState: true } })?.cityState).toBe(true);
+    expect(eff({ participantPrivacy: { cityState: true } }, {})?.cityState).toBe(false);
+  });
+
+  it('accepts the toggle on both tiers and still rejects unknown privacy keys', () => {
+    expect(validateCaps({ participantPrivacy: { sex: true } })).toEqual([]);
+    expect(validateSettings({ participantPrivacy: { sex: false } }, {})).toEqual([]);
+    expect(validateSettings({ participantPrivacy: { sexe: true } }, {}).map((i) => i.code)).toContain('unknownField');
+  });
+});

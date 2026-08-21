@@ -407,6 +407,22 @@ export interface ProviderParticipantPrivacy {
   /** Allow `person.addresses[0].city / .state` through to the public
    *  participants endpoint (full street / postal code stay stripped). */
   cityState?: boolean;
+  /**
+   * Allow `person.sex` through to public participant payloads.
+   *
+   * `POLICY_PRIVACY_DEFAULT` strips it, deliberately, and that default does not
+   * change. This is the per-provider opt-in — the ITA needs gender to reach its
+   * public college pages, and for a long time CFS achieved that by mutating the
+   * shared factory fixture in place, which loosened privacy for every other
+   * provider in the process.
+   *
+   * ⚠️ Consumers must open **both** person blocks — the top-level
+   * `participant.person` AND `participant.individualParticipants.person`.
+   * Opening only the first genders a standalone individual while stripping the
+   * members of a PAIR or TEAM, which is invisible until someone looks at a
+   * doubles rubber.
+   */
+  sex?: boolean;
 }
 
 /**
@@ -447,6 +463,19 @@ export interface ProviderConfigCaps {
   branding?: ProviderBranding;
   permissions?: ProviderCapsPermissions;
   policies?: ProviderCapsPolicies;
+  /**
+   * Provisioner-set participant-privacy toggles.
+   *
+   * Same deliberate exception as `participantPrivacyPolicyRef` below: the
+   * boolean toggles are provider-owned because a RESELLER has no standing to
+   * dictate privacy, but a governing body over member institutions is a
+   * different relationship. The ITA is one provisioner over ~1,032 schools that
+   * will not each configure their own — setting it once here is the point.
+   *
+   * A provider may always be MORE private: `resolveParticipantPrivacy` requires
+   * the cap to enable an attribute AND the provider not to have disabled it.
+   */
+  participantPrivacy?: ProviderParticipantPrivacy;
   /**
    * Provisioner-imposed participant-privacy FLOOR, as a catalog reference.
    * A provider may declare its own policy in settings, but the effective

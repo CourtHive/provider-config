@@ -59,11 +59,18 @@ export function computeEffectiveConfig(
     policies: mergePolicies(caps.policies, settings.policies),
     defaults: settings.defaults,
     integrations: caps.integrations,
-    // participantPrivacy is provider-owned (settings tier only). The
-    // provisioner has no caps surface here — privacy is between the
-    // provider and its participants. Default = false (privacy-first)
-    // when absent.
-    participantPrivacy: { cityState: settings.participantPrivacy?.cityState === true },
+    // participantPrivacy: privacy-first by default, and an attribute is open only
+    // when the provisioner enables it AND the provider has not turned it off.
+    //
+    // `cityState` keeps its original settings-only behaviour so nothing that
+    // relies on it changes. `sex` is caps-gated from the start: the ITA is one
+    // provisioner over ~1,032 schools that will not each configure their own, and
+    // a governing body setting this for its members is the exception CA granted
+    // (a reseller dictating privacy is not — see ProviderConfigCaps).
+    participantPrivacy: {
+      cityState: settings.participantPrivacy?.cityState === true,
+      sex: caps.participantPrivacy?.sex === true && settings.participantPrivacy?.sex !== false,
+    },
     // crowdScoring is provider-owned (settings tier only) and passed through
     // verbatim; consumers apply the ON-by-default via resolveCrowdScoringEnabled.
     crowdScoring: settings.crowdScoring,

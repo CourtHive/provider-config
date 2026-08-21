@@ -42,6 +42,7 @@ const CAPS_TOP_LEVEL_KEYS = new Set([
   'permissions',
   'policies',
   'integrations',
+  'participantPrivacy',
   'participantPrivacyPolicyRef',
 ]);
 const SETTINGS_TOP_LEVEL_KEYS = new Set([
@@ -55,7 +56,7 @@ const SETTINGS_TOP_LEVEL_KEYS = new Set([
   'crowdScoring',
 ]);
 const PRIVACY_POLICY_REF_KEYS = new Set(['name', 'version']);
-const PARTICIPANT_PRIVACY_KEYS = new Set(['cityState']);
+const PARTICIPANT_PRIVACY_KEYS = new Set(['cityState', 'sex']);
 
 /**
  * A catalog reference is structurally validated only — provider-config does not
@@ -157,7 +158,7 @@ export function validateCaps(caps: unknown): ValidationIssue[] {
       issues.push({
         path: key,
         code: 'unknownField',
-        message: `unknown caps top-level key "${key}"; expected one of branding/permissions/policies/integrations`,
+        message: `unknown caps top-level key "${key}"; expected one of ${[...CAPS_TOP_LEVEL_KEYS].join('/')}`,
       });
     }
   }
@@ -165,6 +166,7 @@ export function validateCaps(caps: unknown): ValidationIssue[] {
   validateBranding(caps.branding, 'branding', issues);
   validateCapsPermissions(caps.permissions, 'permissions', issues);
   validateCapsPolicies(caps.policies, 'policies', issues);
+  validateParticipantPrivacy(caps.participantPrivacy, 'participantPrivacy', issues);
   validatePrivacyPolicyRef(caps.participantPrivacyPolicyRef, 'participantPrivacyPolicyRef', issues);
   validateIntegrations(caps.integrations, 'integrations', issues);
 
@@ -185,7 +187,7 @@ export function validateSettings(settings: unknown, caps: ProviderConfigCaps = {
       issues.push({
         path: key,
         code: 'unknownField',
-        message: `unknown settings top-level key "${key}"; expected one of branding/permissions/policies/defaults`,
+        message: `unknown settings top-level key "${key}"; expected one of ${[...SETTINGS_TOP_LEVEL_KEYS].join('/')}`,
       });
     }
   }
