@@ -926,12 +926,25 @@ describe('validateSettings', () => {
       expect(issue?.code).toBe('wrongType');
     });
 
-    it('rejects participantPrivacy on caps (it belongs on settings)', () => {
-      // The caps validator should reject `participantPrivacy` as an
-      // unknown top-level field — privacy is provider-owned.
-      const issues = validateCaps({ participantPrivacy: { cityState: true } });
-      const issue = issues.find((i) => i.path === 'participantPrivacy');
-      expect(issue?.code).toBe('unknownField');
+    it('ACCEPTS participantPrivacy on caps — reversed by decision, 2026-08-21', () => {
+      // This test previously asserted the opposite: that caps must REJECT
+      // `participantPrivacy` because "privacy is provider-owned".
+      //
+      // Inverted deliberately, not weakened to make code pass. That rule assumed
+      // the provisioner is a RESELLER, which has no standing to dictate a
+      // provider's privacy. A governing body over member institutions is a
+      // different relationship: the ITA is one provisioner over ~1,032 schools
+      // that will not each configure their own, and CA granted the exception
+      // explicitly.
+      //
+      // The safety property is preserved elsewhere rather than here: a cap can
+      // only ENABLE an attribute, and a provider can always turn it back off —
+      // see the merge rule in effective-config and its tests. A provisioner
+      // cannot make a provider less private than the provider accepts.
+      expect(validateCaps({ participantPrivacy: { sex: true } })).toEqual([]);
+      expect(validateCaps({ participantPrivacy: { cityState: true } })).toEqual([]);
+      // Still structural: an unknown privacy key is rejected on caps too.
+      expect(validateCaps({ participantPrivacy: { nope: true } }).map((i) => i.code)).toContain('unknownField');
     });
   });
 
