@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/CourtHive/provider-config/compare/v0.14.0...v0.15.0) (2026-08-21)
+
+
+### Features
+
+* **privacy:** per-provider person.sex toggle, enabled by the provisioner ([#72](https://github.com/CourtHive/provider-config/issues/72)) ([ac86b9d](https://github.com/CourtHive/provider-config/commit/ac86b9d5a8cc7e97819b9d485bacba85fc86b1f7))
+
 ## [0.14.0](https://github.com/CourtHive/provider-config/compare/v0.13.0...v0.14.0) (2026-08-21)
 
 
