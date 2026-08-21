@@ -33,11 +33,17 @@ export interface ValidationIssue {
   disallowedValues?: string[];
 }
 
-export type ValidationIssueCode = 'unknownField' | 'wrongType' | 'exceedsCap';
+export type ValidationIssueCode = 'unknownField' | 'wrongType' | 'exceedsCap' | 'conflict';
 
 // ── Allowed top-level keys ──
 
-const CAPS_TOP_LEVEL_KEYS = new Set(['branding', 'permissions', 'policies', 'integrations']);
+const CAPS_TOP_LEVEL_KEYS = new Set([
+  'branding',
+  'permissions',
+  'policies',
+  'integrations',
+  'participantPrivacyPolicyRef',
+]);
 const SETTINGS_TOP_LEVEL_KEYS = new Set([
   'branding',
   'permissions',
@@ -45,9 +51,41 @@ const SETTINGS_TOP_LEVEL_KEYS = new Set([
   'defaults',
   'participantPrivacy',
   'participantPrivacyPolicy',
+  'participantPrivacyPolicyRef',
   'crowdScoring',
 ]);
+const PRIVACY_POLICY_REF_KEYS = new Set(['name', 'version']);
 const PARTICIPANT_PRIVACY_KEYS = new Set(['cityState']);
+
+/**
+ * A catalog reference is structurally validated only — provider-config does not
+ * know the catalog, so it cannot check that `name` resolves. A consumer that
+ * fails to resolve it must fail CLOSED (fall back to the strictest policy it
+ * has), never open.
+ */
+function validatePrivacyPolicyRef(value: any, path: string, issues: ValidationIssue[]): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) {
+    issues.push({ path, code: 'wrongType', message: `${path} must be an object` });
+    return;
+  }
+  if (typeof value.name !== 'string' || !value.name.trim()) {
+    issues.push({
+      path: `${path}.name`,
+      code: 'wrongType',
+      message: `${path}.name is required and must be a non-empty string`,
+    });
+  }
+  if (value.version !== undefined && typeof value.version !== 'string') {
+    issues.push({ path: `${path}.version`, code: 'wrongType', message: `${path}.version must be a string` });
+  }
+  for (const key of Object.keys(value)) {
+    if (!PRIVACY_POLICY_REF_KEYS.has(key)) {
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `Unknown key ${path}.${key}` });
+    }
+  }
+}
+
 const CROWD_SCORING_KEYS = new Set(['enabled']);
 
 const BRANDING_KEYS = new Set([
@@ -127,6 +165,7 @@ export function validateCaps(caps: unknown): ValidationIssue[] {
   validateBranding(caps.branding, 'branding', issues);
   validateCapsPermissions(caps.permissions, 'permissions', issues);
   validateCapsPolicies(caps.policies, 'policies', issues);
+  validatePrivacyPolicyRef(caps.participantPrivacyPolicyRef, 'participantPrivacyPolicyRef', issues);
   validateIntegrations(caps.integrations, 'integrations', issues);
 
   return issues;
@@ -161,6 +200,18 @@ export function validateSettings(settings: unknown, caps: ProviderConfigCaps = {
       path: 'participantPrivacyPolicy',
       code: 'wrongType',
       message: 'participantPrivacyPolicy must be an object',
+    });
+  }
+  validatePrivacyPolicyRef(settings.participantPrivacyPolicyRef, 'participantPrivacyPolicyRef', issues);
+  // Declaring both forms on the same tier is a configuration error, not a
+  // precedence question. Inventing a winner here would make the effective
+  // policy depend on a rule nobody wrote down.
+  if (settings.participantPrivacyPolicy !== undefined && settings.participantPrivacyPolicyRef !== undefined) {
+    issues.push({
+      path: 'participantPrivacyPolicyRef',
+      code: 'conflict',
+      message:
+        'participantPrivacyPolicy and participantPrivacyPolicyRef are mutually exclusive — declare a catalog reference OR an inline policy, not both',
     });
   }
   validateSettingsPermissions(settings.permissions, caps.permissions, 'permissions', issues);

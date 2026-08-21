@@ -10,6 +10,7 @@ export {
   type ArrayPermissionKey,
   type BooleanPermissionKey,
   type CappablePermissionKey,
+  type ParticipantPrivacyPolicyRef,
   type PrintPoliciesByType,
   type ProviderBranding,
   type ProviderCapsPermissions,
@@ -44,6 +45,7 @@ export {
   mergePermissions,
   mergePolicies,
   resolveCrowdScoringEnabled,
+  resolveParticipantPrivacy,
   resolveRankingPointsPolicy,
 } from './effective-config';
 

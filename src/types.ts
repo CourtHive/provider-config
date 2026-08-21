@@ -375,6 +375,34 @@ export interface ProviderCapsPolicies {
  * relaxes a single attribute that the default privacy policy
  * (`POLICY_PRIVACY_DEFAULT`) otherwise strips from public payloads.
  */
+/**
+ * A reference to a NAMED participant-privacy policy owned by the factory's
+ * policy catalog, rather than a copy of the policy itself.
+ *
+ * Why a reference and not an object: the ITA is a single provisioner over
+ * ~1,032 member-institution providers. Storing the same policy object in
+ * every provider's settings makes 1,032 copies of one decision — the drift
+ * shape this ecosystem has repeatedly paid for. A name resolves to one
+ * definition that can be corrected in one place.
+ *
+ * There is deliberately no `kind` discriminator here, unlike
+ * `RankingPointsPolicy`. That enum classifies WHO owns a ranking policy
+ * (BASIC / CUSTOM / NATIONAL), which is a real distinction for rankings. A
+ * privacy policy is just a named attribute filter; inventing a classifier
+ * would be ceremony with no consumer.
+ *
+ * Resolution is the consumer's job — provider-config does not know the
+ * catalog. `resolveParticipantPrivacy()` reports WHICH policy applies and
+ * what floor constrains it; the factory owns the attribute schema and
+ * performs the intersection.
+ */
+export interface ParticipantPrivacyPolicyRef {
+  /** Catalog name, e.g. `'ITA'`. Required when the ref is declared. */
+  name: string;
+  /** Optional version string for traceability across catalog revisions. */
+  version?: string;
+}
+
 export interface ProviderParticipantPrivacy {
   /** Allow `person.addresses[0].city / .state` through to the public
    *  participants endpoint (full street / postal code stay stripped). */
@@ -402,14 +430,32 @@ export interface ProviderCrowdScoringConfig {
  * cannot exceed. Provider admin writes to ProviderConfigSettings
  * may not violate caps.
  *
- * NOTE: `participantPrivacy` lives on `ProviderConfigSettings`,
- * NOT here. Privacy governs the provider's relationship with its
- * own participants — a reseller has no standing to dictate it.
+ * NOTE: the boolean `participantPrivacy` toggles live on
+ * `ProviderConfigSettings`, NOT here. Privacy governs the provider's
+ * relationship with its own participants — a reseller has no standing to
+ * dictate it.
+ *
+ * `participantPrivacyPolicyRef` is the deliberate exception (CA, 2026-08-21).
+ * The rationale above assumes the provisioner is a RESELLER. A governing body
+ * over member institutions is a different relationship: the ITA is one
+ * provisioner over ~1,032 schools that will not configure their own privacy,
+ * and a federation setting a privacy FLOOR for its members is legitimate where
+ * a reseller dictating one is not. The floor may only be TIGHTENED by the
+ * provider, never loosened — see `resolveParticipantPrivacy()`.
  */
 export interface ProviderConfigCaps {
   branding?: ProviderBranding;
   permissions?: ProviderCapsPermissions;
   policies?: ProviderCapsPolicies;
+  /**
+   * Provisioner-imposed participant-privacy FLOOR, as a catalog reference.
+   * A provider may declare its own policy in settings, but the effective
+   * policy must be at least as restrictive as this one. Enforcement of
+   * "at least as restrictive" belongs to the consumer that can resolve both
+   * policies to attribute maps — provider-config reports the obligation, it
+   * cannot compute it.
+   */
+  participantPrivacyPolicyRef?: ParticipantPrivacyPolicyRef;
   integrations?: ProviderIntegrations;
 }
 
@@ -459,6 +505,18 @@ export interface ProviderConfigSettings {
    * factory owns the attribute schema.
    */
   participantPrivacyPolicy?: Record<string, any>;
+  /**
+   * The provider's selected participant-privacy policy as a CATALOG REFERENCE
+   * — the preferred form. Use this rather than `participantPrivacyPolicy`
+   * unless the provider genuinely needs a one-off that no catalog entry
+   * expresses; an inline object is a private copy that nothing can correct
+   * centrally.
+   *
+   * Declaring BOTH on the same tier is a configuration error, not a
+   * precedence question — `validateSettings` rejects it rather than inventing
+   * a winner.
+   */
+  participantPrivacyPolicyRef?: ParticipantPrivacyPolicyRef;
 }
 
 // ── Effective shape (delivered to TMX) ──
@@ -477,6 +535,9 @@ export interface ProviderConfigData {
   participantPrivacy?: ProviderParticipantPrivacy;
   crowdScoring?: ProviderCrowdScoringConfig;
   participantPrivacyPolicy?: Record<string, any>;
+  participantPrivacyPolicyRef?: ParticipantPrivacyPolicyRef;
+  /** Provisioner-imposed floor, surfaced so consumers can enforce it. */
+  participantPrivacyPolicyFloor?: ParticipantPrivacyPolicyRef;
 }
 
 // ── Helper enumerations for the merge function and validators ──
