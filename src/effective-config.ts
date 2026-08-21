@@ -30,6 +30,7 @@ import {
   BOOLEAN_PERMISSION_KEYS,
   PERMISSIONS_DEFAULT_FALSE,
   type AllowedCategory,
+  type ParticipantPrivacyPolicyRef,
   type ProviderBranding,
   type ProviderConfigCaps,
   type ProviderConfigData,
@@ -70,7 +71,51 @@ export function computeEffectiveConfig(
     // It is attached to tournamentRecords for the factory to apply; consumers
     // that need the provider's default privacy read it here.
     participantPrivacyPolicy: settings.participantPrivacyPolicy,
+    // The catalog REFERENCE form, and the provisioner floor that constrains it.
+    // Both are reported; neither is intersected here — see resolveParticipantPrivacy.
+    participantPrivacyPolicyRef: settings.participantPrivacyPolicyRef ?? caps.participantPrivacyPolicyRef,
+    participantPrivacyPolicyFloor: caps.participantPrivacyPolicyRef,
   };
+}
+
+/**
+ * Resolve WHICH participant-privacy policy applies to a provider, and what
+ * floor constrains it.
+ *
+ * Consumers MUST call this rather than reading the fields directly, so the
+ * caps/settings precedence and the floor obligation stay single-sourced.
+ *
+ * ⚠️ This deliberately does NOT return a merged policy, and cannot. Both forms
+ * are opaque here by design — the factory owns the attribute schema — so
+ * provider-config has no way to intersect a policy named `'ITA'` with one named
+ * `'STANFORD_STRICT'`. It reports the obligation instead of pretending to
+ * discharge it. **A consumer that ignores `floor` will silently let a provider
+ * loosen a provisioner's privacy floor**, which is the whole failure this
+ * exists to prevent.
+ *
+ * Precedence: a provider's own declaration wins over the provisioner's, because
+ * the floor is a MINIMUM, not an override — the provider is expected to be able
+ * to tighten. When the provider declares nothing, the floor IS the policy.
+ */
+export function resolveParticipantPrivacy(
+  caps: Partial<ProviderConfigCaps> | undefined,
+  settings: Partial<ProviderConfigSettings> | undefined,
+): {
+  policy?: Record<string, any>;
+  policyRef?: ParticipantPrivacyPolicyRef;
+  floor?: ParticipantPrivacyPolicyRef;
+  source: 'CAPS' | 'SETTINGS' | 'NONE';
+} {
+  const floor = caps?.participantPrivacyPolicyRef;
+  const declaredRef = settings?.participantPrivacyPolicyRef;
+  const declaredInline = settings?.participantPrivacyPolicy;
+
+  if (declaredRef) return { policyRef: declaredRef, floor, source: 'SETTINGS' };
+  if (declaredInline && Object.keys(declaredInline).length) {
+    return { policy: declaredInline, floor, source: 'SETTINGS' };
+  }
+  if (floor) return { policyRef: floor, floor, source: 'CAPS' };
+  return { source: 'NONE' };
 }
 
 /**
