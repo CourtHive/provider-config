@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/CourtHive/provider-config/compare/v0.13.0...v0.14.0) (2026-08-21)
+
+
+### Features
+
+* **privacy:** reference a named participant-privacy policy, and let a provisioner set a floor ([#69](https://github.com/CourtHive/provider-config/issues/69)) ([47204c4](https://github.com/CourtHive/provider-config/commit/47204c4de4ecdfd8566fdd8bad161f2891520a3f))
+
 ## [0.13.0](https://github.com/CourtHive/provider-config/compare/v0.12.0...v0.13.0) (2026-08-13)
 
 
