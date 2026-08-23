@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/CourtHive/provider-config/compare/v0.17.0...v0.18.0) (2026-08-23)
+
+
+### Features
+
+* **scope:** canonical scoped-grant predicate ([#78](https://github.com/CourtHive/provider-config/issues/78)) ([c22fb3a](https://github.com/CourtHive/provider-config/commit/c22fb3a33357a8dbe7d4a884eb2d7998616501de))
+
 ## [0.17.0](https://github.com/CourtHive/provider-config/compare/v0.16.0...v0.17.0) (2026-08-23)
 
 
