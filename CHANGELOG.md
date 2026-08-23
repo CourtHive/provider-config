@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/CourtHive/provider-config/compare/v0.16.0...v0.17.0) (2026-08-23)
+
+
+### Features
+
+* **permissions:** gate per-matchUp check-in mutations ([#76](https://github.com/CourtHive/provider-config/issues/76)) ([4f2688a](https://github.com/CourtHive/provider-config/commit/4f2688a12eed0f955bee04efb2df5c1270c31c2a))
+
 ## [0.16.0](https://github.com/CourtHive/provider-config/compare/v0.15.0...v0.16.0) (2026-08-23)
 
 
