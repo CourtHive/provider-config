@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/CourtHive/provider-config/compare/v0.15.0...v0.16.0) (2026-08-23)
+
+
+### Features
+
+* **permissions:** map every client-reachable mutation ([#74](https://github.com/CourtHive/provider-config/issues/74)) ([e5b15e7](https://github.com/CourtHive/provider-config/commit/e5b15e77880fe3140b758c2665bd71cbc450934d))
+
 ## [0.15.0](https://github.com/CourtHive/provider-config/compare/v0.14.0...v0.15.0) (2026-08-21)
 
 
