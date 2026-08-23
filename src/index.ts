@@ -52,3 +52,18 @@ export {
 export { validateCaps, validateSettings, type ValidationIssue, type ValidationIssueCode } from './validators';
 
 export { MUTATION_PERMISSIONS, isMutationAllowed } from './mutation-permissions';
+export {
+  GRANT_CAPABILITY_ALL,
+  SCOPE_KEYS,
+  SCOPE_KEY_FOR_FIELD,
+  grantCoversCapability,
+  grantCoversMethod,
+  isEvaluableScope,
+  isTargetInScope,
+  isTournamentWide,
+  isWithinWindow,
+  requiredTargetFields,
+  type GrantScope,
+  type ScopeKey,
+  type ScopeTarget,
+} from './grant-scope';
