@@ -27,6 +27,20 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   modifyParticipantsSignInStatus: 'canEditParticipantDetails',
   modifyEntriesStatus: 'canEditParticipantDetails',
 
+  // Per-matchUp check-in — a participant presenting at the desk for ONE match, stored as a CHECK_IN
+  // timeItem on the matchUp. Distinct from `modifyParticipantsSignInStatus`, which records first
+  // arrival at the tournament and is tournament-wide, but gated the same: a provider allowed to record
+  // that someone arrived is allowed to record that they turned up for their match.
+  //
+  // These were unmapped until TMX grew a check-in surface (TMX #1340), and `isMutationAllowed` returns
+  // TRUE for an unmapped method — so this closes a granularity gap rather than an access hole.
+  // `canEditParticipantDetails` is deliberately NOT in `PERMISSIONS_DEFAULT_FALSE`, so adding these
+  // mappings cannot deny a provider that has no permissions object configured — which, as of the
+  // 2026-08-23 production audit, is every one of them.
+  checkInParticipant: 'canEditParticipantDetails',
+  checkOutParticipant: 'canEditParticipantDetails',
+  toggleParticipantCheckInState: 'canEditParticipantDetails',
+
   // Officials (proxy via match-official assignment — there's no dedicated
   // ADD_OFFICIAL mutation since officials enter as PARTICIPANTS but the
   // assignment-to-matchUp surface is the gate-worthy one)

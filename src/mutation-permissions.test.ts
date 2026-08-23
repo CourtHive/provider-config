@@ -11,6 +11,29 @@ describe('MUTATION_PERMISSIONS map', () => {
     expect(MUTATION_PERMISSIONS.modifyParticipant).toBe('canEditParticipantDetails');
   });
 
+  it('gates per-matchUp check-in the same way as tournament sign-in', () => {
+    // Check-in is the per-matchUp sibling of sign-in: a provider allowed to record that someone
+    // arrived at the tournament is allowed to record that they turned up for their match.
+    expect(MUTATION_PERMISSIONS.checkInParticipant).toBe('canEditParticipantDetails');
+    expect(MUTATION_PERMISSIONS.checkOutParticipant).toBe('canEditParticipantDetails');
+    expect(MUTATION_PERMISSIONS.toggleParticipantCheckInState).toBe('canEditParticipantDetails');
+    expect(MUTATION_PERMISSIONS.toggleParticipantCheckInState).toBe(
+      MUTATION_PERMISSIONS.modifyParticipantsSignInStatus,
+    );
+  });
+
+  it('does not DENY check-in to a provider with no permissions configured', () => {
+    // The near-miss this guards, recorded 2026-08-23: mapping a mutation to a key that lives in
+    // PERMISSIONS_DEFAULT_FALSE denies it for every provider without a configured permissions object
+    // — which, per the production audit, is all 1130 of them. Adding a mapping must never turn a
+    // working mutation off, so this asserts the unconfigured-provider case directly rather than
+    // trusting that `canEditParticipantDetails` is absent from that set.
+    const effective = computeEffectiveConfig({} as any);
+    for (const method of ['checkInParticipant', 'checkOutParticipant', 'toggleParticipantCheckInState']) {
+      expect(isMutationAllowed(method, effective.permissions)).toBe(true);
+    }
+  });
+
   it('covers official-assignment under canCreateOfficials', () => {
     expect(MUTATION_PERMISSIONS.addMatchUpOfficial).toBe('canCreateOfficials');
   });
