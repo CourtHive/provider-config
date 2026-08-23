@@ -88,6 +88,113 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   unPublishOrderOfPlay: 'canUnpublish',
   unPublishParticipants: 'canUnpublish',
   unPublishEventSeeding: 'canUnpublish',
+
+  // ── Entries (event + draw) ──
+  // Previously ungated entirely: a director blocked from CREATING competitors
+  // could still enter every existing participant into every event.
+  addEventEntries: 'canModifyEntries',
+  removeEventEntries: 'canModifyEntries',
+  addDrawEntries: 'canModifyEntries',
+  removeDrawEntries: 'canModifyEntries',
+  addEventEntryPairs: 'canModifyEntries',
+  destroyPairEntries: 'canModifyEntries',
+  removeStageEntries: 'canModifyEntries',
+
+  // ── Draw positioning ──
+  // Placing players is a different act from making the draw, so these do NOT
+  // gate on canCreateDraws.
+  assignDrawPosition: 'canAssignPositions',
+  assignDrawPositionBye: 'canAssignPositions',
+  removeDrawPositionAssignment: 'canAssignPositions',
+  setPositionAssignments: 'canAssignPositions',
+  automatedPlayoffPositioning: 'canAssignPositions',
+  luckyDrawAdvancement: 'canAssignPositions',
+  setSubOrder: 'canAssignPositions',
+  seedWithdrawalCascade: 'canAssignPositions',
+  setDrawPositionPreferences: 'canAssignPositions',
+  assignTieMatchUpParticipantId: 'canAssignPositions',
+  removeTieMatchUpParticipantId: 'canAssignPositions',
+
+  // ── Draft positioning ──
+  initializeDraft: 'canUseDraftPositioning',
+  resolveDraftPositions: 'canUseDraftPositioning',
+
+  // ── Structures ──
+  attachQualifyingStructure: 'canModifyStructures',
+  attachPlayoffStructures: 'canModifyStructures',
+  attachConsolationStructures: 'canModifyStructures',
+  generateVoluntaryConsolation: 'canModifyStructures',
+  generateFlightProfile: 'canModifyStructures',
+  addAdHocMatchUps: 'canModifyStructures',
+  renameStructures: 'canModifyStructures',
+  modifyDrawName: 'canModifyStructures',
+  removeStructure: 'canDeleteDraws',
+  resetDrawDefinition: 'canDeleteDraws',
+
+  // ── Scoring ──
+  // canEnterScores and canModifyCompletedScores were declared but enforced
+  // nowhere; setMatchUpStatus is the single method TMX's scoring path emits.
+  setMatchUpStatus: 'canEnterScores',
+  setDelegatedOutcome: 'canEnterScores',
+  removeDelegatedOutcome: 'canEnterScores',
+  // NOTE: these three are score-destructive and semantically belong under
+  // `canModifyCompletedScores` — but that key is in PERMISSIONS_DEFAULT_FALSE, so
+  // computeEffectiveConfig resolves it to `false` for every provider that has not
+  // configured permissions (which, as of 2026-08-23, is all 1130 in production).
+  // Mapping them there would deny these operations for everyone on deploy.
+  // Gated under canEnterScores to stay behaviour-neutral; tightening to
+  // canModifyCompletedScores is a deliberate policy change that must ship with a
+  // provider-config migration, not as a side effect of closing the mapping gap.
+  resetScorecard: 'canEnterScores',
+  resetMatchUpLinesUps: 'canEnterScores',
+  abandonTournamentMatchUps: 'canEnterScores',
+
+  // ── Scheduling ──
+  setMatchUpCalledAt: 'canModifySchedule',
+  setMatchUpScheduleLock: 'canModifySchedule',
+  addScheduleScenario: 'canModifyScheduleScenarios',
+  updateScheduleScenario: 'canModifyScheduleScenarios',
+  removeScheduleScenario: 'canModifyScheduleScenarios',
+  rebaseScheduleScenario: 'canModifyScheduleScenarios',
+  applyScheduleScenario: 'canModifyScheduleScenarios',
+
+  // ── Courts + venue resources ──
+  addCourts: 'canCreateVenues',
+  deleteCourts: 'canDeleteVenues',
+  addOnlineResource: 'canModifyTournamentDetails',
+  removeOnlineResource: 'canModifyTournamentDetails',
+
+  // ── Practice courts ──
+  addPracticeRegistration: 'canManagePracticeCourts',
+  updatePracticeRegistration: 'canManagePracticeCourts',
+  removePracticeRegistration: 'canManagePracticeCourts',
+  setPracticeDefaultCapacity: 'canManagePracticeCourts',
+
+  // ── Participants: grouping, extensions, time items ──
+  createGroupParticipant: 'canEditParticipantDetails',
+  addIndividualParticipantIds: 'canEditParticipantDetails',
+  removeIndividualParticipantIds: 'canEditParticipantDetails',
+  addParticipantExtension: 'canEditParticipantDetails',
+  removeParticipantExtension: 'canEditParticipantDetails',
+  addParticipantTimeItem: 'canEditParticipantDetails',
+
+  // ── Ratings + scales ──
+  addDynamicRatings: 'canModifyRatings',
+  setParticipantScaleItems: 'canModifyRatings',
+  generateSeedingScaleItems: 'canModifyRatings',
+  updateParticipantResults: 'canModifyRatings',
+
+  // ── Tournament details + extensions ──
+  setTournamentCategories: 'canModifyTournamentDetails',
+  setTournamentTier: 'canModifyTournamentDetails',
+  addTournamentExtension: 'canModifyTournamentDetails',
+  addTournamentTimeItem: 'canModifyTournamentDetails',
+  addEventExtension: 'canModifyEventFormat',
+  addDrawDefinitionExtension: 'canCreateDraws',
+
+  // ── Linked tournaments ──
+  linkTournaments: 'canLinkTournaments',
+  unlinkTournament: 'canLinkTournaments',
 } as const;
 
 /**

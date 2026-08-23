@@ -57,6 +57,11 @@ export interface ProviderPermissions {
   canDeleteParticipants?: boolean;
   canImportParticipants?: boolean;
   canEditParticipantDetails?: boolean;
+  /** Add/remove/pair event and draw entries. Distinct from creating the participant:
+   *  a director barred from creating competitors can still enter existing ones. */
+  canModifyEntries?: boolean;
+  /** Ratings, scale items and computed results (seeding scales, dynamic ratings). */
+  canModifyRatings?: boolean;
 
   // ── Events ──
   canCreateEvents?: boolean;
@@ -68,6 +73,11 @@ export interface ProviderPermissions {
   canDeleteDraws?: boolean;
   canUseDraftPositioning?: boolean;
   canUseManualPositioning?: boolean;
+  /** Assign/remove draw positions, seeding cascades, sub-orders, lucky-loser advancement.
+   *  Separate from `canCreateDraws`: placing players is a different act from making the draw. */
+  canAssignPositions?: boolean;
+  /** Attach or remove structures (qualifying, playoffs, consolation, ad-hoc rounds) and rename them. */
+  canModifyStructures?: boolean;
   /** Restrict draw types to this list (factory drawType constants). Empty = all allowed. */
   allowedDrawTypes?: string[];
   /** Restrict creation methods. Empty = all allowed. */
@@ -76,11 +86,15 @@ export interface ProviderPermissions {
   // ── Scheduling ──
   canModifySchedule?: boolean;
   canUseBulkScheduling?: boolean;
+  /** Create/apply/rebase named scheduling scenarios (what-if planning). */
+  canModifyScheduleScenarios?: boolean;
 
   // ── Venues ──
   canCreateVenues?: boolean;
   canDeleteVenues?: boolean;
   canModifyCourtAvailability?: boolean;
+  /** Practice-court registrations and default practice capacity. */
+  canManagePracticeCourts?: boolean;
 
   // ── Scoring ──
   canEnterScores?: boolean;
@@ -94,6 +108,8 @@ export interface ProviderPermissions {
   // ── Settings ──
   canModifyTournamentDetails?: boolean;
   canModifyPolicies?: boolean;
+  /** Link/unlink tournaments for shared-facility scheduling. */
+  canLinkTournaments?: boolean;
   canAccessProviderAdmin?: boolean;
 
   // ── Communication ──
@@ -341,6 +357,13 @@ export type CappablePermissionKey =
   | 'canModifyPolicies'
   | 'canAccessProviderAdmin'
   | 'canUseChat'
+  | 'canModifyEntries'
+  | 'canModifyRatings'
+  | 'canAssignPositions'
+  | 'canModifyStructures'
+  | 'canModifyScheduleScenarios'
+  | 'canManagePracticeCourts'
+  | 'canLinkTournaments'
   // Array (allowed-universe) caps
   | 'allowedDrawTypes'
   | 'allowedCreationMethods'
@@ -596,7 +619,14 @@ export type BooleanPermissionKey =
   | 'canModifyTournamentDetails'
   | 'canModifyPolicies'
   | 'canAccessProviderAdmin'
-  | 'canUseChat';
+  | 'canUseChat'
+  | 'canModifyEntries'
+  | 'canModifyRatings'
+  | 'canAssignPositions'
+  | 'canModifyStructures'
+  | 'canModifyScheduleScenarios'
+  | 'canManagePracticeCourts'
+  | 'canLinkTournaments';
 
 export type ArrayPermissionKey = 'allowedDrawTypes' | 'allowedCreationMethods' | 'allowedScoringApproaches';
 
@@ -626,6 +656,13 @@ export const BOOLEAN_PERMISSION_KEYS: ReadonlyArray<BooleanPermissionKey> = [
   'canModifyPolicies',
   'canAccessProviderAdmin',
   'canUseChat',
+  'canModifyEntries',
+  'canModifyRatings',
+  'canAssignPositions',
+  'canModifyStructures',
+  'canModifyScheduleScenarios',
+  'canManagePracticeCourts',
+  'canLinkTournaments',
 ] as const;
 
 export const ARRAY_PERMISSION_KEYS: ReadonlyArray<ArrayPermissionKey> = [
