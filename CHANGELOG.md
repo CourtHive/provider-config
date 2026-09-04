@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/CourtHive/provider-config/compare/v0.18.0...v0.18.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **deps:** raise fast-uri to a patched version ([#84](https://github.com/CourtHive/provider-config/issues/84)) ([848c31c](https://github.com/CourtHive/provider-config/commit/848c31c83d378682b301473a557b181666afe740))
+
 ## [0.18.0](https://github.com/CourtHive/provider-config/compare/v0.17.0...v0.18.0) (2026-08-23)
 
 
