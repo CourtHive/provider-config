@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/CourtHive/provider-config/compare/v0.18.1...v0.18.2) (2026-09-07)
+
+
+### Bug Fixes
+
+* **engines:** raise the Node floor off an end-of-life release ([#88](https://github.com/CourtHive/provider-config/issues/88)) ([1883a40](https://github.com/CourtHive/provider-config/commit/1883a40a87f79a74f0f0e2f8d598da8373d94715))
+
 ## [0.18.1](https://github.com/CourtHive/provider-config/compare/v0.18.0...v0.18.1) (2026-09-07)
 
 
