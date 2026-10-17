@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.3](https://github.com/CourtHive/provider-config/compare/v0.18.2...v0.18.3) (2026-10-17)
+
+
+### Bug Fixes
+
+* **hooks:** pass the message file to commitlint once, so merge commits lint ([#105](https://github.com/CourtHive/provider-config/issues/105)) ([43a84d4](https://github.com/CourtHive/provider-config/commit/43a84d4d927bbf3511fe76cd8fb42ad2e4e64c75))
+
 ## [0.18.2](https://github.com/CourtHive/provider-config/compare/v0.18.1...v0.18.2) (2026-09-07)
 
 
