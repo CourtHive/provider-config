@@ -365,6 +365,8 @@ describe('validateSettings', () => {
               requireParticipantsForScoring: false,
               requireAllPositionsAssigned: false,
               allowChangePropagation: false,
+              propagateExitStatus: true,
+              propagateRetirementAsExit: true,
               defaultMatchUpFormat: 'SET3-S:6/TB7',
               allowDeletionWithScoresPresent: { drawDefinitions: false, structures: false },
               stage: { MAIN: { stageSequence: { 1: { requireAllPositionsAssigned: true } } } },
@@ -480,6 +482,32 @@ describe('validateSettings', () => {
         code: 'wrongType',
         message: expect.stringContaining('must be a string'),
       });
+    });
+
+    it('accepts the exit-propagation booleans POLICY_SCORING_USTA sets', () => {
+      for (const value of [true, false]) {
+        const issues = validateSettings({
+          policies: { scoringPolicy: { propagateExitStatus: value, propagateRetirementAsExit: value } },
+        });
+        expect(issues).toEqual([]);
+      }
+    });
+
+    it('rejects non-boolean exit-propagation values', () => {
+      const issues = validateSettings({
+        policies: { scoringPolicy: { propagateExitStatus: 'true', propagateRetirementAsExit: 1 } },
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.propagateExitStatus',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+      expect(issues).toContainEqual({
+        path: 'policies.scoringPolicy.propagateRetirementAsExit',
+        code: 'wrongType',
+        message: expect.stringContaining('must be a boolean'),
+      });
+      expect(issues.some((issue) => issue.code === 'unknownField')).toBe(false);
     });
 
     it('rejects scoringPolicy.stage.stageSequence wrong-typed leaf', () => {

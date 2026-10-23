@@ -618,6 +618,11 @@ const SCORING_POLICY_KEYS = new Set([
   'requireParticipantsForScoring',
   'requireAllPositionsAssigned',
   'allowChangePropagation',
+  // Exit propagation (factory `setMatchUpStatus`): whether a WALKOVER / DEFAULTED loser's exit
+  // carries into the structure a loser link feeds, and whether a RETIREMENT counts as such an exit.
+  // POLICY_SCORING_USTA sets both true.
+  'propagateExitStatus',
+  'propagateRetirementAsExit',
   'defaultMatchUpFormat',
   'allowDeletionWithScoresPresent',
   'stage',
@@ -683,7 +688,9 @@ function validateScoringPolicy(value: unknown, path: string, issues: ValidationI
     if (
       key === 'requireParticipantsForScoring' ||
       key === 'requireAllPositionsAssigned' ||
-      key === 'allowChangePropagation'
+      key === 'allowChangePropagation' ||
+      key === 'propagateExitStatus' ||
+      key === 'propagateRetirementAsExit'
     ) {
       if (v !== undefined && typeof v !== 'boolean') {
         issues.push({ path: fieldPath, code: 'wrongType', message: `${key} must be a boolean` });
