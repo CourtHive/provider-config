@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/CourtHive/provider-config/compare/v0.18.3...v0.19.0) (2026-10-23)
+
+
+### Features
+
+* **validators:** accept propagateExitStatus and propagateRetirementAsExit in scoringPolicy ([#112](https://github.com/CourtHive/provider-config/issues/112)) ([4c7a19c](https://github.com/CourtHive/provider-config/commit/4c7a19cf8dd13b61a87f2ad3717a9a73a7951778))
+
 ## [0.18.3](https://github.com/CourtHive/provider-config/compare/v0.18.2...v0.18.3) (2026-10-17)
 
 
