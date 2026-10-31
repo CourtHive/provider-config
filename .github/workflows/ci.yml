@@ -59,7 +59,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24 # the engines floor; .tool-versions pins the exact 24.x
+          node-version: 26 # .tool-versions pins the exact 26.x
           cache: pnpm
 
       # This repo declares no `link:` overrides, so the committed lockfile resolves as-is
