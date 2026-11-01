@@ -185,4 +185,29 @@ describe('newly gated mutation families', () => {
     expect(isMutationAllowed('setMatchUpStatus', { canEnterScores: true })).toBe(true);
     expect(isMutationAllowed('setDelegatedOutcome', { canEnterScores: false })).toBe(false);
   });
+
+  it('gates the methods behind the newer TMX draw, entry, court and scoring actions', () => {
+    const expected = {
+      bulkMatchUpStatusUpdate: 'canEnterScores',
+      setOrderOfFinish: 'canEnterScores',
+      resetStructure: 'canDeleteDraws',
+      resetQualifyingStructure: 'canDeleteDraws',
+      resetVoluntaryConsolationStructure: 'canDeleteDraws',
+      updateDrawIdsOrder: 'canModifyStructures',
+      qualifierProgression: 'canAssignPositions',
+      promoteAlternate: 'canModifyEntries',
+      promoteAlternates: 'canModifyEntries',
+      setEventDates: 'canModifyEventFormat',
+      disableCourts: 'canModifyCourtAvailability',
+      enableCourts: 'canModifyCourtAvailability',
+      disableVenues: 'canModifyCourtAvailability',
+      enableVenues: 'canModifyCourtAvailability',
+    };
+    for (const [method, key] of Object.entries(expected)) {
+      expect(MUTATION_PERMISSIONS[method]).toBe(key);
+      // a provider with that capability turned off is refused; one with nothing configured is not
+      expect(isMutationAllowed(method, { [key]: false })).toBe(false);
+      expect(isMutationAllowed(method, {})).toBe(true);
+    }
+  });
 });

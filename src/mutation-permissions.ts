@@ -58,6 +58,7 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   addEvent: 'canCreateEvents',
   deleteEvents: 'canDeleteEvents',
   modifyEvent: 'canModifyEventFormat',
+  setEventDates: 'canModifyEventFormat',
   setMatchUpFormat: 'canModifyEventFormat',
   modifyTieFormat: 'canModifyEventFormat',
 
@@ -82,6 +83,11 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   modifyVenue: 'canCreateVenues', // edit-venue gates on create-venue ceiling
   modifyCourt: 'canModifyCourtAvailability',
   modifyCourtAvailability: 'canModifyCourtAvailability',
+  // a director's choice not to use a court or venue, for a date or every date
+  disableCourts: 'canModifyCourtAvailability',
+  enableCourts: 'canModifyCourtAvailability',
+  disableVenues: 'canModifyCourtAvailability',
+  enableVenues: 'canModifyCourtAvailability',
 
   // Tournament details
   setTournamentDates: 'canModifyTournamentDetails',
@@ -113,12 +119,15 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   addEventEntryPairs: 'canModifyEntries',
   destroyPairEntries: 'canModifyEntries',
   removeStageEntries: 'canModifyEntries',
+  promoteAlternate: 'canModifyEntries',
+  promoteAlternates: 'canModifyEntries',
 
   // ── Draw positioning ──
   // Placing players is a different act from making the draw, so these do NOT
   // gate on canCreateDraws.
   assignDrawPosition: 'canAssignPositions',
   assignDrawPositionBye: 'canAssignPositions',
+  qualifierProgression: 'canAssignPositions',
   removeDrawPositionAssignment: 'canAssignPositions',
   setPositionAssignments: 'canAssignPositions',
   automatedPlayoffPositioning: 'canAssignPositions',
@@ -144,6 +153,10 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   modifyDrawName: 'canModifyStructures',
   removeStructure: 'canDeleteDraws',
   resetDrawDefinition: 'canDeleteDraws',
+  resetStructure: 'canDeleteDraws',
+  resetQualifyingStructure: 'canDeleteDraws',
+  resetVoluntaryConsolationStructure: 'canDeleteDraws',
+  updateDrawIdsOrder: 'canModifyStructures',
 
   // ── Scoring ──
   // canEnterScores and canModifyCompletedScores were declared but enforced
@@ -162,6 +175,9 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   resetScorecard: 'canEnterScores',
   resetMatchUpLinesUps: 'canEnterScores',
   abandonTournamentMatchUps: 'canEnterScores',
+  // the batch form of setMatchUpStatus, and the dual's order of finish: both write results
+  bulkMatchUpStatusUpdate: 'canEnterScores',
+  setOrderOfFinish: 'canEnterScores',
 
   // ── Scheduling ──
   setMatchUpCalledAt: 'canModifySchedule',
