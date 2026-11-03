@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/CourtHive/provider-config/compare/v0.19.0...v0.19.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **permissions:** gate the methods behind the newer tmx draw, entry, court and scoring actions ([#118](https://github.com/CourtHive/provider-config/issues/118)) ([2d824bc](https://github.com/CourtHive/provider-config/commit/2d824bccb0a525d93e16469b95f7b965013f0740))
+
 ## [0.19.0](https://github.com/CourtHive/provider-config/compare/v0.18.3...v0.19.0) (2026-10-23)
 
 
