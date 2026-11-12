@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { isMutationAllowed, MUTATION_PERMISSIONS } from './mutation-permissions';
+import { describe, expect, it } from 'vitest';
 
 describe('individual participant consolidation permissions', () => {
   it('requires permission to delete the duplicate', () => {
