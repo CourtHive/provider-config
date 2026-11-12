@@ -22,6 +22,7 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   // Participants
   addParticipants: 'canCreateCompetitors',
   deleteParticipants: 'canDeleteParticipants',
+  mergeIndividualParticipants: 'canDeleteParticipants',
   modifyParticipant: 'canEditParticipantDetails',
   modifyParticipantOtherName: 'canEditParticipantDetails',
   modifyParticipantsSignInStatus: 'canEditParticipantDetails',
@@ -240,6 +241,7 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
  * call).
  */
 export function isMutationAllowed(method: string, permissions: ProviderPermissions = {}): boolean {
+  if (method === 'mergeIndividualParticipants' && permissions.canEditParticipantDetails === false) return false;
   const permKey = MUTATION_PERMISSIONS[method];
   if (!permKey) return true;
   const value = permissions[permKey];
