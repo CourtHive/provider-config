@@ -115,7 +115,7 @@ const CAPS_POLICY_KEYS = new Set([
   'allowedMatchUpFormats',
   'allowedCategories',
   'allowedTierSystems',
-  'allowedGoverningBodies',
+  'allowedSanctioningPolicies',
   'allowedCollegeDivisions',
 ]);
 const SETTINGS_POLICY_KEYS = new Set([
@@ -126,7 +126,7 @@ const SETTINGS_POLICY_KEYS = new Set([
   'allowedMatchUpFormats',
   'allowedCategories',
   'allowedTierSystems',
-  'allowedGoverningBodies',
+  'allowedSanctioningPolicies',
   'allowedCollegeDivisions',
 ]);
 
@@ -424,7 +424,11 @@ function validateCapsPolicies(value: unknown, path: string, issues: ValidationIs
   }
   for (const key of Object.keys(value)) {
     if (!CAPS_POLICY_KEYS.has(key)) {
-      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown caps policy key "${key}"` });
+      issues.push({
+        path: `${path}.${key}`,
+        code: 'unknownField',
+        message: unknownPolicyKeyMessage('caps policy', key),
+      });
       continue;
     }
     if (key === 'allowedMatchUpFormats') {
@@ -447,12 +451,12 @@ function validateCapsPolicies(value: unknown, path: string, issues: ValidationIs
           message: `${key} must be an array of { system, displayName?, values? } objects`,
         });
       }
-    } else if (key === 'allowedGoverningBodies') {
-      if (!isGoverningBodyArray(value[key])) {
+    } else if (key === 'allowedSanctioningPolicies') {
+      if (!isSanctioningPolicyArray(value[key])) {
         issues.push({
           path: `${path}.${key}`,
           code: 'wrongType',
-          message: `${key} must be an array of { governingBodyId, displayName? } objects`,
+          message: `${key} must be an array of { sanctioningPolicy, displayName? } objects`,
         });
       }
     } else if (key === 'allowedCollegeDivisions' && !isStringArray(value[key])) {
@@ -477,7 +481,7 @@ function validateSettingsPolicies(
 
   for (const key of Object.keys(settingsPolicies)) {
     if (!SETTINGS_POLICY_KEYS.has(key)) {
-      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: `unknown policy key "${key}"` });
+      issues.push({ path: `${path}.${key}`, code: 'unknownField', message: unknownPolicyKeyMessage('policy', key) });
       continue;
     }
     const v = settingsPolicies[key];
@@ -543,24 +547,24 @@ function validateSettingsPolicies(
           });
         }
       }
-    } else if (key === 'allowedGoverningBodies') {
-      if (!isGoverningBodyArray(v)) {
+    } else if (key === 'allowedSanctioningPolicies') {
+      if (!isSanctioningPolicyArray(v)) {
         issues.push({
           path: `${path}.${key}`,
           code: 'wrongType',
-          message: `${key} must be an array of { governingBodyId, displayName? } objects`,
+          message: `${key} must be an array of { sanctioningPolicy, displayName? } objects`,
         });
         continue;
       }
-      const universe = capsPolicies.allowedGoverningBodies;
+      const universe = capsPolicies.allowedSanctioningPolicies;
       if (universe && universe.length > 0) {
-        const allowedBodies = new Set(universe.map((b) => b.governingBodyId));
-        const disallowed = v.filter((b) => !allowedBodies.has(b.governingBodyId)).map((b) => b.governingBodyId);
+        const allowedPolicies = new Set(universe.map((b) => b.sanctioningPolicy));
+        const disallowed = v.filter((b) => !allowedPolicies.has(b.sanctioningPolicy)).map((b) => b.sanctioningPolicy);
         if (disallowed.length > 0) {
           issues.push({
             path: `${path}.${key}`,
             code: 'exceedsCap',
-            message: `${key} contains governing bodies outside the provisioner-allowed universe`,
+            message: `${key} contains sanctioning policies outside the provisioner-allowed universe`,
             disallowedValues: disallowed,
           });
         }
@@ -1218,12 +1222,25 @@ function isCategoryArray(v: unknown): v is Array<{ ageCategoryCode: string; cate
   );
 }
 
-function isGoverningBodyArray(v: unknown): v is Array<{ governingBodyId: string; displayName?: string }> {
+/**
+ * Renamed policy keys, so a config still written the old way is told the new name rather than only that its key is
+ * unknown. `allowedGoverningBodies` held rulebooks, not governing bodies (the provider is the governing body).
+ */
+const RENAMED_POLICY_KEYS: Record<string, string> = {
+  allowedGoverningBodies: 'allowedSanctioningPolicies, of { sanctioningPolicy, displayName? }',
+};
+
+function unknownPolicyKeyMessage(kind: string, key: string): string {
+  const renamed = RENAMED_POLICY_KEYS[key];
+  return renamed ? `${kind} key "${key}" is now ${renamed}` : `unknown ${kind} key "${key}"`;
+}
+
+function isSanctioningPolicyArray(v: unknown): v is Array<{ sanctioningPolicy: string; displayName?: string }> {
   if (!Array.isArray(v)) return false;
   return v.every(
     (b) =>
       isPlainObject(b) &&
-      typeof b.governingBodyId === 'string' &&
+      typeof b.sanctioningPolicy === 'string' &&
       (b.displayName === undefined || typeof b.displayName === 'string'),
   );
 }

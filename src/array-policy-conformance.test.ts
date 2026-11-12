@@ -22,7 +22,7 @@ const SAMPLES: Record<string, unknown[]> = {
   allowedMatchUpFormats: ['SET3-S:6/TB7'],
   allowedCategories: [{ ageCategoryCode: 'U18' }],
   allowedTierSystems: [{ system: 'ITF_JUNIOR', displayName: 'ITF Junior', values: ['J100'] }],
-  allowedGoverningBodies: [{ governingBodyId: 'itf', displayName: 'ITF World Tennis Tour' }],
+  allowedSanctioningPolicies: [{ sanctioningPolicy: 'itf', displayName: 'ITF World Tennis Tour' }],
   allowedCollegeDivisions: ['DI'],
 };
 
@@ -76,12 +76,12 @@ describe('array policy intersection', () => {
     expect(effective.policies?.allowedTierSystems).toEqual([]);
   });
 
-  it('narrows governing bodies to those the cap permits', () => {
+  it('narrows sanctioning policies to those the cap permits', () => {
     const effective = computeEffectiveConfig(
-      { policies: { allowedGoverningBodies: [{ governingBodyId: 'itf' }, { governingBodyId: 'usta' }] } },
-      { policies: { allowedGoverningBodies: [{ governingBodyId: 'usta' }] } },
+      { policies: { allowedSanctioningPolicies: [{ sanctioningPolicy: 'itf' }, { sanctioningPolicy: 'usta' }] } },
+      { policies: { allowedSanctioningPolicies: [{ sanctioningPolicy: 'usta' }] } },
     );
-    expect(effective.policies?.allowedGoverningBodies).toEqual([{ governingBodyId: 'usta' }]);
+    expect(effective.policies?.allowedSanctioningPolicies).toEqual([{ sanctioningPolicy: 'usta' }]);
   });
 
   it('leaves college divisions absent for a provider whose provisioner grants none', () => {
@@ -98,23 +98,32 @@ describe('array policy intersection', () => {
 });
 
 describe('validators for the new policies', () => {
-  it('accepts a well-formed governing-body cap', () => {
-    const issues = validateCaps({ policies: { allowedGoverningBodies: [{ governingBodyId: 'itf' }] } });
+  it('accepts a well-formed sanctioning-policy cap', () => {
+    const issues = validateCaps({ policies: { allowedSanctioningPolicies: [{ sanctioningPolicy: 'itf' }] } });
     expect(issues).toEqual([]);
   });
 
-  it('rejects a malformed governing-body entry', () => {
-    const issues = validateCaps({ policies: { allowedGoverningBodies: [{ displayName: 'no id' }] } as any });
+  it('rejects a malformed sanctioning-policy entry', () => {
+    const issues = validateCaps({ policies: { allowedSanctioningPolicies: [{ displayName: 'no id' }] } as any });
     expect(issues.map((i) => i.code)).toContain('wrongType');
   });
 
-  it('rejects a settings governing body outside the cap universe', () => {
+  it('rejects a settings sanctioning policy outside the cap universe', () => {
     const issues = validateSettings(
-      { policies: { allowedGoverningBodies: [{ governingBodyId: 'usta' }] } },
-      { policies: { allowedGoverningBodies: [{ governingBodyId: 'itf' }] } },
+      { policies: { allowedSanctioningPolicies: [{ sanctioningPolicy: 'usta' }] } },
+      { policies: { allowedSanctioningPolicies: [{ sanctioningPolicy: 'itf' }] } },
     );
     expect(issues.map((i) => i.code)).toContain('exceedsCap');
     expect(issues[0].disallowedValues).toEqual(['usta']);
+  });
+
+  it('names the new key when a config still uses allowedGoverningBodies', () => {
+    const legacy = { policies: { allowedGoverningBodies: [{ governingBodyId: 'itf' }] } } as any;
+    for (const issues of [validateCaps(legacy), validateSettings(legacy, {})]) {
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({ code: 'unknownField', path: 'policies.allowedGoverningBodies' });
+      expect(issues[0].message).toMatch(/is now allowedSanctioningPolicies/);
+    }
   });
 
   it('accepts college divisions the provisioner granted', () => {

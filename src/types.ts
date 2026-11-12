@@ -149,16 +149,19 @@ export interface AllowedTierSystem {
 /**
  * A sanctioning rulebook the provider may file applications under.
  *
- * `governingBodyId` is the factory's sanctioning-policy key — the value that selects which
- * lifecycle rules apply (`'itf'`, `'usta'`, `'generic'` are the policies the factory ships).
- * It is NOT "who runs the software": most providers only ever file under one body, and the
- * courthive-ams sanctioning wizard hides the field entirely when exactly one is configured.
+ * `sanctioningPolicy` is the factory's sanctioning-policy key — the value that selects which
+ * lifecycle rules apply (`'itf'`, `'usta'`, `'generic'` are the policies the factory ships), and
+ * what a sanctioning record carries as its own `sanctioningPolicy`. It is NOT the governing body:
+ * that is the provider filing, which owns the sanctioned tournament (CA, 2026-11-11). This list was
+ * `allowedGoverningBodies` of `{ governingBodyId }` until 0.20.0. Most providers only ever file
+ * under one rulebook, and the courthive-ams sanctioning wizard stops asking when exactly one is
+ * configured.
  *
  * Absent or empty → the applicant chooses from every rulebook the factory ships.
  */
-export interface AllowedGoverningBody {
+export interface AllowedSanctioningPolicy {
   /** Factory sanctioning policy id stored on the sanctioning record. */
-  governingBodyId: string;
+  sanctioningPolicy: string;
   /** Human-friendly label used in the applicant's select. */
   displayName?: string;
 }
@@ -253,7 +256,7 @@ export interface ProviderPolicyDefaults {
    * Sanctioning rulebooks this provider may file under. Absent or empty → every rulebook the
    * factory ships. When exactly one is configured the applicant is not asked at all.
    */
-  allowedGoverningBodies?: AllowedGoverningBody[];
+  allowedSanctioningPolicies?: AllowedSanctioningPolicy[];
   /**
    * College divisions offerable on a sanctioning application (`'DI'`, `'DII'`, `'NAIA'`, …).
    *
@@ -383,7 +386,7 @@ export interface ProviderCapsPolicies {
    */
   allowedTierSystems?: AllowedTierSystem[];
   /** Universe of sanctioning rulebooks the provider may file applications under. */
-  allowedGoverningBodies?: AllowedGoverningBody[];
+  allowedSanctioningPolicies?: AllowedSanctioningPolicy[];
   /**
    * Universe of college divisions the provider may offer. Provisioner-owned by design: this is
    * how a college federation (the ITA) enables college classification for the providers it
@@ -679,7 +682,7 @@ export const ARRAY_POLICY_KEYS: ReadonlyArray<keyof ProviderPolicyDefaults> = [
   'allowedMatchUpFormats',
   'allowedCategories',
   'allowedTierSystems',
-  'allowedGoverningBodies',
+  'allowedSanctioningPolicies',
   'allowedCollegeDivisions',
 ] as const;
 
