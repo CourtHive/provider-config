@@ -1,6 +1,6 @@
 {
   "name": "@courthive/provider-config",
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.18.0",
   "version": "1.0.0",
   "description": "Canonical types, KEYS, validators, computeEffectiveConfig, and MUTATION_PERMISSIONS for CourtHive provider configuration.",
   "author": "Charles Allen <charles@CourtHive.com> (CourtHive.com)",
