@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CourtHive/provider-config/compare/v1.0.0...v1.1.0) (2026-11-12)
+
+
+### Features
+
+* gate individual participant consolidation permissions ([#130](https://github.com/CourtHive/provider-config/issues/130)) ([69cc498](https://github.com/CourtHive/provider-config/commit/69cc49835f7de9ad6b1a7c0dc7488a6b210b9a68))
+
 ## [1.0.0](https://github.com/CourtHive/provider-config/compare/v0.19.1...v1.0.0) (2026-11-12)
 
 
