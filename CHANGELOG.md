@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/CourtHive/provider-config/compare/v0.19.1...v1.0.0) (2026-11-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **policies:** allowedGoverningBodies and AllowedGoverningBody are removed. Stored configs must rename the key and each entry's governingBodyId to sanctioningPolicy.
+
+### Refactor
+
+* **policies:** allowedGoverningBodies -&gt; allowedSanctioningPolicies ([a7b1cc6](https://github.com/CourtHive/provider-config/commit/a7b1cc694a5a3b3fd736a101ccdf58c0ff83ba08))
+
 ## [0.19.1](https://github.com/CourtHive/provider-config/compare/v0.19.0...v0.19.1) (2026-11-03)
 
 
