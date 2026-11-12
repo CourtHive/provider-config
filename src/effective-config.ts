@@ -215,12 +215,12 @@ export function mergePolicies(
   const tiers = intersectKeyedList(caps.allowedTierSystems, settings.allowedTierSystems, (t) => t.system);
   if (tiers !== undefined) out.allowedTierSystems = tiers;
 
-  const bodies = intersectKeyedList(
-    caps.allowedGoverningBodies,
-    settings.allowedGoverningBodies,
-    (b) => b.governingBodyId,
+  const sanctioningPolicies = intersectKeyedList(
+    caps.allowedSanctioningPolicies,
+    settings.allowedSanctioningPolicies,
+    (b) => b.sanctioningPolicy,
   );
-  if (bodies !== undefined) out.allowedGoverningBodies = bodies;
+  if (sanctioningPolicies !== undefined) out.allowedSanctioningPolicies = sanctioningPolicies;
 
   const divisions = intersectStringList(caps.allowedCollegeDivisions, settings.allowedCollegeDivisions);
   if (divisions !== undefined) out.allowedCollegeDivisions = divisions;
