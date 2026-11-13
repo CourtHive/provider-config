@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MUTATION_PERMISSIONS, isMutationAllowed } from './mutation-permissions';
+import { MUTATION_PERMISSIONS, OPT_IN_MUTATIONS, isMutationAllowed } from './mutation-permissions';
 import { BOOLEAN_PERMISSION_KEYS, PERMISSIONS_DEFAULT_FALSE } from './types';
 import { computeEffectiveConfig } from './effective-config';
 
@@ -131,15 +131,20 @@ describe('MUTATION_PERMISSIONS conformance', () => {
   it('denies nothing for a provider with no configured permissions', () => {
     const permissions = computeEffectiveConfig({}, {}).permissions ?? {};
     const denied = Object.keys(MUTATION_PERMISSIONS).filter((m) => !isMutationAllowed(m, permissions));
-    expect(denied).toEqual([]);
+    expect(denied).toEqual([...OPT_IN_MUTATIONS]);
   });
 
   // The trap that caught resetScorecard: a key in PERMISSIONS_DEFAULT_FALSE
   // resolves to false for every unconfigured provider, so mapping a mutation to
   // one silently denies it fleet-wide on deploy.
   it('maps no mutation to a permission that defaults to false', () => {
-    const offenders = Object.entries(MUTATION_PERMISSIONS).filter(([, key]) => PERMISSIONS_DEFAULT_FALSE.has(key));
+    const offenders = Object.entries(MUTATION_PERMISSIONS).filter(
+      ([method, key]) => PERMISSIONS_DEFAULT_FALSE.has(key) && !OPT_IN_MUTATIONS.has(method),
+    );
     expect(offenders).toEqual([]);
+    // A declared opt-in must really be gated by a default-false key, or the declaration is stale.
+    for (const method of OPT_IN_MUTATIONS)
+      expect(PERMISSIONS_DEFAULT_FALSE.has(MUTATION_PERMISSIONS[method])).toBe(true);
   });
 });
 

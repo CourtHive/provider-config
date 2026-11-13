@@ -55,6 +55,9 @@ export interface ProviderPermissions {
   canCreateCompetitors?: boolean;
   canCreateOfficials?: boolean;
   canDeleteParticipants?: boolean;
+  /** Consolidate two INDIVIDUAL participants into one. Opt-in: defaults to false (PERMISSIONS_DEFAULT_FALSE), and a
+   *  merge also requires canDeleteParticipants and canEditParticipantDetails to be explicitly true. */
+  canMergeParticipants?: boolean;
   canImportParticipants?: boolean;
   canEditParticipantDetails?: boolean;
   /** Add/remove/pair event and draw entries. Distinct from creating the participant:
@@ -338,6 +341,7 @@ export type CappablePermissionKey =
   | 'canCreateCompetitors'
   | 'canCreateOfficials'
   | 'canDeleteParticipants'
+  | 'canMergeParticipants'
   | 'canImportParticipants'
   | 'canEditParticipantDetails'
   | 'canCreateEvents'
@@ -601,6 +605,7 @@ export type BooleanPermissionKey =
   | 'canCreateCompetitors'
   | 'canCreateOfficials'
   | 'canDeleteParticipants'
+  | 'canMergeParticipants'
   | 'canImportParticipants'
   | 'canEditParticipantDetails'
   | 'canCreateEvents'
@@ -637,6 +642,7 @@ export const BOOLEAN_PERMISSION_KEYS: ReadonlyArray<BooleanPermissionKey> = [
   'canCreateCompetitors',
   'canCreateOfficials',
   'canDeleteParticipants',
+  'canMergeParticipants',
   'canImportParticipants',
   'canEditParticipantDetails',
   'canCreateEvents',
@@ -695,4 +701,5 @@ export const ARRAY_POLICY_KEYS: ReadonlyArray<keyof ProviderPolicyDefaults> = [
 export const PERMISSIONS_DEFAULT_FALSE: ReadonlySet<keyof ProviderPermissions> = new Set([
   'canModifyCompletedScores',
   'canAccessProviderAdmin',
+  'canMergeParticipants',
 ]);
