@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/CourtHive/provider-config/compare/v1.1.0...v1.2.0) (2026-11-13)
+
+
+### Features
+
+* make individual participant merge an explicit opt-in permission ([#135](https://github.com/CourtHive/provider-config/issues/135)) ([5cb14bc](https://github.com/CourtHive/provider-config/commit/5cb14bc81e715faa23543937a4ae2abf75f80a6b))
+
 ## [1.1.0](https://github.com/CourtHive/provider-config/compare/v1.0.0...v1.1.0) (2026-11-12)
 
 
