@@ -141,7 +141,8 @@ describe('computeEffectiveConfig', () => {
     it('PERMISSIONS_DEFAULT_FALSE set covers exactly the documented exceptions', () => {
       expect(PERMISSIONS_DEFAULT_FALSE.has('canModifyCompletedScores')).toBe(true);
       expect(PERMISSIONS_DEFAULT_FALSE.has('canAccessProviderAdmin')).toBe(true);
-      expect(PERMISSIONS_DEFAULT_FALSE.size).toBe(2);
+      expect(PERMISSIONS_DEFAULT_FALSE.has('canMergeParticipants')).toBe(true);
+      expect(PERMISSIONS_DEFAULT_FALSE.size).toBe(3);
     });
   });
 

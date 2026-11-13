@@ -22,7 +22,7 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
   // Participants
   addParticipants: 'canCreateCompetitors',
   deleteParticipants: 'canDeleteParticipants',
-  mergeIndividualParticipants: 'canDeleteParticipants',
+  mergeIndividualParticipants: 'canMergeParticipants',
   modifyParticipant: 'canEditParticipantDetails',
   modifyParticipantOtherName: 'canEditParticipantDetails',
   modifyParticipantsSignInStatus: 'canEditParticipantDetails',
@@ -240,8 +240,18 @@ export const MUTATION_PERMISSIONS: Readonly<Record<string, keyof ProviderPermiss
  * the draw-type itself is selected, not on the addDrawDefinition
  * call).
  */
+/**
+ * Mutations deliberately gated by a PERMISSIONS_DEFAULT_FALSE key: an unconfigured provider cannot run them until
+ * both tiers grant the permission. Declared here so the conformance guard can tell a decision from an accident.
+ * `mergeIndividualParticipants` (CA, 2026-11-13): consolidation retires a participant identity, so it is opt-in.
+ */
+export const OPT_IN_MUTATIONS: ReadonlySet<string> = new Set(['mergeIndividualParticipants']);
+
+/** A merge retires an identity: it needs explicit grants, so an absent value (or no permissions at all) refuses. */
+const MERGE_REQUIRES = ['canMergeParticipants', 'canDeleteParticipants', 'canEditParticipantDetails'] as const;
+
 export function isMutationAllowed(method: string, permissions: ProviderPermissions = {}): boolean {
-  if (method === 'mergeIndividualParticipants' && permissions.canEditParticipantDetails === false) return false;
+  if (method === 'mergeIndividualParticipants') return MERGE_REQUIRES.every((key) => permissions[key] === true);
   const permKey = MUTATION_PERMISSIONS[method];
   if (!permKey) return true;
   const value = permissions[permKey];
