@@ -51,7 +51,7 @@ export {
 
 export { validateCaps, validateSettings, type ValidationIssue, type ValidationIssueCode } from './validators';
 
-export { MUTATION_PERMISSIONS, isMutationAllowed } from './mutation-permissions';
+export { MUTATION_PERMISSIONS, OPT_IN_MUTATIONS, isMutationAllowed } from './mutation-permissions';
 export {
   GRANT_CAPABILITY_ALL,
   SCOPE_KEYS,
